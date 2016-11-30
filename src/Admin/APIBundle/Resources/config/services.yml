@@ -1,0 +1,4 @@
+services:
+#    admin_api.example:
+#        class: Admin\APIBundle\Example
+#        arguments: ["@service_id", "plain_value", "%parameter%"]
