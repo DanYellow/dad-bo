@@ -21,7 +21,8 @@
         "sensio/distribution-bundle": "~5.0",
         "sensio/framework-extra-bundle": "^3.0.2",
         "incenteev/composer-parameter-handler": "~2.0",
-        "coresphere/console-bundle": "^0.2.0"
+        "coresphere/console-bundle": "^0.2.0",
+        "api-platform/api-platform": "^1.0"
     },
     "require-dev": {
         "sensio/generator-bundle": "~3.0",
@@ -46,7 +47,7 @@
     "config": {
         "bin-dir": "bin",
         "platform": {
-            "php": "5.3.9"
+            "php": "5.5.34"
         }
     },
     "extra": {
