@@ -25,3 +25,6 @@ Clear cache (prod) : php app/console ca:cl -e=prod
 Debug routes : php app/console debug:router
 
 Publish assets from public folder : php app/console assets:install
+
+
+Fatal error: Allowed memory size of 1073741824 bytes exhausted (tried to allocate 32 bytes) in phar:///usr/local/bin/composer/src/Composer/DependencyResolver/RuleWatchGraph.php on line 52
