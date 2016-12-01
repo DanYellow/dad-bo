@@ -27,4 +27,12 @@ Debug routes : php app/console debug:router
 Publish assets from public folder : php app/console assets:install
 
 
-Fatal error: Allowed memory size of 1073741824 bytes exhausted (tried to allocate 32 bytes) in phar:///usr/local/bin/composer/src/Composer/DependencyResolver/RuleWatchGraph.php on line 52
+http://127.0.0.1:8000/_console
+
+http://obtao.com/blog/2013/12/creer-une-api-rest-dans-une-application-symfony/
+
+
+SET FOREIGN_KEY_CHECKS=0; -- to disable them
+SET FOREIGN_KEY_CHECKS=1; 
+
+123456789C

@@ -16,7 +16,6 @@ use JMS\Serializer\Annotation\VirtualProperty;
  *
  * @ORM\Table(name="classified_advertisement")
  * @ORM\Entity(repositoryClass="Admin\APIBundle\Repository\ClassifiedAdvertisementRepository")
- * @ORM\HasLifecycleCallbacks
  *
  * @ExclusionPolicy("all") 
  */
@@ -107,10 +106,10 @@ class ClassifiedAdvertisement
 
     public function __construct()
     {
-        $this->createdAt   = new \DateTime();
-        $this->isActive    = true;
-        $this->description = "";
-        $this->slug        = null;
+
+        $this->createdAt = new \DateTime();
+        $this->isActive = true;
+
     }
 
 
@@ -306,28 +305,5 @@ class ClassifiedAdvertisement
     public function getSlug()
     {
         return $this->slug;
-    }
-
-    /**
-     * Set seller
-     *
-     * @param \Admin\APIBundle\Entity\User $seller
-     * @return ClassifiedAdvertisement
-     */
-    public function setSeller(\Admin\APIBundle\Entity\User $seller)
-    {
-        $this->seller = $seller;
-
-        return $this;
-    }
-
-    /**
-     * Get seller
-     *
-     * @return \Admin\APIBundle\Entity\User 
-     */
-    public function getSeller()
-    {
-        return $this->seller;
     }
 }
