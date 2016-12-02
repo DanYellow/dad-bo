@@ -8,10 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\Common\Collections\ArrayCollection;
 
-use JMS\Serializer\Annotation\ExclusionPolicy;
-use JMS\Serializer\Annotation\Expose;
-use JMS\Serializer\Annotation\Groups;
-use JMS\Serializer\Annotation\VirtualProperty;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 use Admin\APIBundle\Entity\ClassifiedAdvertisement as ClassifiedAdvertisement;
 
@@ -22,7 +19,6 @@ use Admin\APIBundle\Entity\ClassifiedAdvertisement as ClassifiedAdvertisement;
  * @ORM\Entity(repositoryClass="Admin\APIBundle\Repository\UserRepository")
  * @ORM\HasLifecycleCallbacks
  *
- * @ExclusionPolicy("all")
  */
 class User extends BaseUser
 {
@@ -32,7 +28,7 @@ class User extends BaseUser
      * @ORM\Column(name="id", type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
-     * @Expose
+     * @Groups({"list", "details"})
      */
     protected $id;
 
@@ -41,7 +37,7 @@ class User extends BaseUser
      *
      * @Assert\NotBlank()
      * @ORM\Column(name="pseudo", type="string", length=15, unique=true)
-     * @Expose
+     * @Groups({"list", "details"})
      */
     private $pseudo;
 
@@ -49,13 +45,12 @@ class User extends BaseUser
      * @var string
      *
      * @ORM\Column(name="location", type="string", length=50, nullable=true)
-     * @Expose
+     * @Groups({"list", "details"})
      */
     private $location;
 
     /**
      * @ORM\OneToMany(targetEntity="ClassifiedAdvertisement", mappedBy="seller")
-     * @Expose
      * @Groups({"Profile"})
      */
     private $classifiedAdvertisements;
@@ -133,5 +128,38 @@ class User extends BaseUser
     {
         $this->email = sha1($this->email);
         $this->pseudo = $this->username;
+    }
+
+    /**
+     * Add classifiedAdvertisements
+     *
+     * @param \Admin\APIBundle\Entity\ClassifiedAdvertisement $classifiedAdvertisements
+     * @return User
+     */
+    public function addClassifiedAdvertisement(\Admin\APIBundle\Entity\ClassifiedAdvertisement $classifiedAdvertisements)
+    {
+        $this->classifiedAdvertisements[] = $classifiedAdvertisements;
+
+        return $this;
+    }
+
+    /**
+     * Remove classifiedAdvertisements
+     *
+     * @param \Admin\APIBundle\Entity\ClassifiedAdvertisement $classifiedAdvertisements
+     */
+    public function removeClassifiedAdvertisement(\Admin\APIBundle\Entity\ClassifiedAdvertisement $classifiedAdvertisements)
+    {
+        $this->classifiedAdvertisements->removeElement($classifiedAdvertisements);
+    }
+
+    /**
+     * Get classifiedAdvertisements
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getClassifiedAdvertisements()
+    {
+        return $this->classifiedAdvertisements;
     }
 }

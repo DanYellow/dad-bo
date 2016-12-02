@@ -9,7 +9,7 @@ php app/console server:run
 
 MySQL commands :
 change password : mysqladmin -u root password newpassword
-connect to database : mysql -u root -pMYPAssWORD
+connect to database : mysql -u root -pfoo42!
 change database : USE databaseName;
 export database : mysqldump -u root -pfoo42! foo > foo.sql
 
@@ -27,7 +27,7 @@ Debug routes : php app/console debug:router
 Publish assets from public folder : php app/console assets:install
 
 
-http://127.0.0.1:8000/_console
+
 
 http://obtao.com/blog/2013/12/creer-une-api-rest-dans-une-application-symfony/
 
@@ -36,3 +36,8 @@ SET FOREIGN_KEY_CHECKS=0; -- to disable them
 SET FOREIGN_KEY_CHECKS=1; 
 
 123456789C
+
+### URL :
+
+http://127.0.0.1:8000/_console
+http://127.0.0.1:8000/api/classified_advertisements

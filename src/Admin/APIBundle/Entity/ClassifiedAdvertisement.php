@@ -6,10 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 use Admin\APIBundle\Entity\User as User;
 
-use JMS\Serializer\Annotation\ExclusionPolicy;
-use JMS\Serializer\Annotation\Expose;
-use JMS\Serializer\Annotation\Groups;
-use JMS\Serializer\Annotation\VirtualProperty;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * ClassifiedAdvertisement
@@ -18,7 +15,7 @@ use JMS\Serializer\Annotation\VirtualProperty;
  * @ORM\Entity(repositoryClass="Admin\APIBundle\Repository\ClassifiedAdvertisementRepository")
  * @ORM\HasLifecycleCallbacks
  *
- * @ExclusionPolicy("all") 
+ * 
  */
 class ClassifiedAdvertisement
 {
@@ -29,7 +26,7 @@ class ClassifiedAdvertisement
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      *
-     * @Expose
+     * @Groups({"list", "details"})
      */
     private $id;
 
@@ -37,7 +34,7 @@ class ClassifiedAdvertisement
      * @var string
      *
      * @ORM\Column(name="title", type="string", length=255)
-     * @Expose
+     * @Groups({"list", "details"})
      */
     private $title;
 
@@ -45,7 +42,7 @@ class ClassifiedAdvertisement
      * @var string
      *
      * @ORM\Column(name="description", type="text", nullable=true)
-     * @Expose
+     * @Groups({"list", "details"})
      */
     private $description;
 
@@ -53,7 +50,7 @@ class ClassifiedAdvertisement
      * @var bool
      *
      * @ORM\Column(name="isActive", type="boolean")
-     * @Expose
+     * @Groups({"list", "details"})
      */
     private $isActive;
 
@@ -61,7 +58,7 @@ class ClassifiedAdvertisement
      * @var string
      *
      * @ORM\Column(name="price", type="decimal", precision=2, scale=2, nullable=true)
-     * @Expose
+     * @Groups({"list", "details"})
      */
     private $price;
 
@@ -69,7 +66,7 @@ class ClassifiedAdvertisement
      * @var \DateTime
      *
      * @ORM\Column(name="createdAt", type="datetime")
-     * @Expose
+     * @Groups({"list", "details"})
      */
     private $createdAt;
 
@@ -85,7 +82,7 @@ class ClassifiedAdvertisement
      * @var \DateTime
      *
      * @ORM\Column(name="lastUpdate", type="datetime", nullable=true)
-     * @Expose
+     * @Groups({"list", "details"})
      */
     private $lastUpdate;
 
@@ -93,7 +90,7 @@ class ClassifiedAdvertisement
      * @var string
      *
      * @ORM\Column(name="slug", type="string", length=255, nullable=true)
-     * @Expose
+     * @Groups({"list", "details"})
      */
     private $slug;
 
@@ -101,7 +98,7 @@ class ClassifiedAdvertisement
     /**
      * @ORM\ManyToOne(targetEntity="User", inversedBy="classifiedAdvertisements")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id", nullable=false)
-     * @Expose
+     * @Groups({"list", "details"})
      */
     private $seller;
 
