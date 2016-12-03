@@ -10,10 +10,10 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 
 use Admin\APIBundle\Entity\ClassifiedAdvertisement as ClassifiedAdvertisement;
 use Admin\APIBundle\Controller\Helpers as Helpers;
+use Admin\APIBundle\Controller\AuthentificationController as AuthentificationController;
 
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 
@@ -24,20 +24,6 @@ use Doctrine\ORM\Tools\Pagination\Paginator;
 
 class ClassifiedAdvertisementController extends Controller
 {
-  /**
-   * Formats API response to be complient to jsonapi standard
-   * http://jsonapi.org/examples/#pagination
-   * @param  Object/Array $data Object
-   * @param Array $extraData [<description>]
-   * @return Object       Standardized datas
-   */
-  function formatAPIResponse($data, $extraData = array()) 
-  {
-    $standardizedData = array('data' => $data);
-
-    return $standardizedData;
-  }
-
   function createProperUserObject(\Admin\APIBundle\Entity\User $seller) {
     return $seller = array(
       'id' => $seller->getId(),
@@ -47,15 +33,14 @@ class ClassifiedAdvertisementController extends Controller
   }
 
   /**
-   * Get information for a given user.
-   *
    * ### Example response ###
    *
    *     {
+   *       "status_code": 200,
    *       "data": [{
    *         "id": 33,
    *         "title": "Xbox One",
-   *         "description": "djeanlou",
+   *         "description": "Je vends ma Xbox One en attendant patiemment et sans jeux vidéo, la sortie du monstre.\n Jean Dispaplusse",
    *         "price": "0.00",
    *         "createdAt": "2016-12-03 00:12:23",
    *         "lastUpdate": null,
@@ -66,8 +51,8 @@ class ClassifiedAdvertisementController extends Controller
    *          }
    *       },{
    *          "id": 34,
-   *          "title": "Xbox One",
-   *          "description": "djeanlou",
+   *          "title": "PS4",
+   *          "description": "Je vends ma PS4 pour m'acheter une PS4 Pro et un PS VR",
    *          "price": "90.00",
    *          "createdAt": "2016-12-03 00:14:33",
    *          "lastUpdate": null,
@@ -89,23 +74,21 @@ class ClassifiedAdvertisementController extends Controller
    *       }
    *     }
    *
-   *
-   * @Route("/classified_advertisements/")
+   * @Route("/classified_advertisements")
    * @Route("/classified_advertisements/{page}", defaults={"page" = 1})
    * @Method({"GET"})
-
+   * 
    * @ApiDoc(
    *   description="Get list of classified advertisements",
    *   section="Classified avertisements",
    *   filters={
-   *     {"name"="page", "dataType"="integer", "requirement"="\d+", "description"="Page number", "default"=1},
+   *     {"name"="page", "dataType"="integer", "requirement"="\d+", "description"="Page number. If requirement isn't satisfied ", "default"=1},
    *   }
    * )
    */
-  public function getClassifiedAdvertisementsAction(Request $request)
+  public function getClassifiedAdvertisements(Request $request)
   {
     $em = $this->getDoctrine()->getManager();
-    $request = $this->container->get('request');
 
     $nbItemsPerPage = 2;
     $currentPage = (int)$this->getRequest()->get('page') ?: 1;
@@ -150,82 +133,77 @@ class ClassifiedAdvertisementController extends Controller
   }
 
   /**
-   * @Route("/classified_advertisement")
+   * @Route("/classified_advertisement/{id}")
    * @Method({"POST"})
    *
    * @ApiDoc(
-   *   description="Create a classified advertisement",
+   *   description="Update a classified advertisement",
    *   ressource=false,
    *   section="Classified avertisements",
+   *   headers={
+   *     {
+   *       "name"="X-TOKEN",
+   *       "description"="User token",
+   *       "required"=true
+   *     }
+   *   },
    *   requirements={
+   *     {"name"="id", "dataType"="Integer", "requirement"="\d+", "description"="id of the classified advertisement"},
+   *   },
+   *   parameters={
    *     {"name"="title", "dataType"="String", "required"=true, "description"="Title of the classified advertisement"},
    *     {"name"="description", "dataType"="String", "required"=false, "description"="Description of the item sold"},
    *     {"name"="price", "dataType"="float", "required"=false, "description"="Price of the item sold"},
-   *     {"name"="seller", "dataType"="Integer / String", "required"=true, "description"="User id or user username"},
-   *   }
+   *   },
    * )
    */
-  public function createClassifiedAdvertisementAction(Request $request)
+  public function updateClassifiedAdvertisement(Request $request)
   {
-    $securityContext = $this->container->get('security.authorization_checker');
+    $response = array();
+
+    $token = $request->headers->get('X-TOKEN');
+    $userFromToken = $this->isUserTokenValid($token);
+    if (!$userFromToken) {
+     return new JSONResponse(Helpers::manageInvalidUserToken());
+    }
+
+    $user = $em->getRepository('AdminAPIBundle:User')
+               ->findOneBy(array('username' => $userFromToken["username"]));
 
     $em = $this->getDoctrine()->getManager();
 
-    $title       = $this->getRequest()->get('title');
-    $seller      = $this->getRequest()->get('seller');
-    $description = $this->getRequest()->get('description');
-    $price       = $this->getRequest()->get('price');
+    $id = (int)$this->getRequest()->get('id');
 
-    $id = $this->getRequest()->get('seller');
-    if (is_int($id)) {
-      $selector = array('id' => $id);
-    } else {
-      $selector = array('username' => $id);
-    }
+    $classifiedAdvertisement = $em->getRepository('AdminAPIBundle:ClassifiedAdvertisement')
+                                  ->findOneBy(array(
+                                      'seller' => $user,
+                                      'id' => $id,
+                                    ));
 
-    $seller = $em->getRepository('AdminAPIBundle:User')
-                                     ->findOneBy($selector);
-
-    if (!$seller) {
-      $response = array(
-        'data' => null,
-        'status_code' => Response::HTTP_NOT_FOUND,
-        'errors' => array(
-          'name' => ''
-        )
-      );
-    } else {
-      $classifiedAdvertisement = new ClassifiedAdvertisement();
-      $classifiedAdvertisement->setTitle($title);
-      $classifiedAdvertisement->setSeller($seller);
-      $classifiedAdvertisement->setDescription($description);
-      $classifiedAdvertisement->setPrice($price);
-
-      $seller->addClassifiedAdvertisement($classifiedAdvertisement);
+    if ($classifiedAdvertisement) {
+      $classifiedAdvertisement->setTitle($this->getRequest()->get('title'));
+      $classifiedAdvertisement->setDescription($this->getRequest()->get('description'));
+      $classifiedAdvertisement->setPrice($this->getRequest()->get('price'));
+      $classifiedAdvertisement->setLastUpdate(new \DateTime());
 
       $em->persist($classifiedAdvertisement);
-      $em->persist($seller);
       $em->flush();
-
-      $currentUser = $this->createProperUserObject($seller);
 
       $response = array(
         'data' => array(
-          'ressource' => array(
-            'id'          => $classifiedAdvertisement->getId(),
-            'title'       => $classifiedAdvertisement->getTitle(),
-            'description' => $classifiedAdvertisement->getDescription(),
-            'price'       => $classifiedAdvertisement->getPrice(),
-            'createdAt'   => $classifiedAdvertisement->getCreatedAt()->format('Y-m-d H:i:s'),
-            'seller'      => $currentUser,
-          ),
+          'ressource' => $classifiedAdvertisement->getSerializableDatas($currentUser),
           'flash_message' => Helpers::createFlashMessage('Ressource created', 'success', 1000)
         ),
         'status_code'=> Response::HTTP_CREATED
       );
+    } else {
+      $response = array(
+        'data' => array(
+          'flash_message' => Helpers::createFlashMessage('Ressource not found', 'error', 1004)
+        ),
+        'status_code'=> Response::HTTP_NOT_FOUND
+      );
     }
-
-    return new JSONResponse($response);
   }
 
   /**
@@ -236,23 +214,44 @@ class ClassifiedAdvertisementController extends Controller
    *   description="Delete a classified advertisement",
    *   ressource=false,
    *   section="Classified avertisements",
+   *   headers={
+   *     {
+   *       "name"="X-TOKEN",
+   *       "description"="User token",
+   *       "required"=true
+   *     }
+   *   },
    *   requirements={
    *     {"name"="id", "dataType"="Integer", "required"=true, "description"="id the classified advertisement"},
    *   },
    * )
    */
-  public function deleteClassifiedAdvertisementAction(Request $request)
+  public function deleteClassifiedAdvertisement(Request $request)
   {
-    $em = $this->getDoctrine()->getManager();
-
-    $id = (int)$this->getRequest()->get('id') ?: 1;
-    
-    $entity = $em->getRepository('AdminAPIBundle:ClassifiedAdvertisement')
-                 ->find($id);
     $response = array();
+    
+    $token = $request->headers->get('X-TOKEN');
+    $userFromToken = $this->isUserTokenValid($token);
+    if (!$userFromToken) {
+     return new JSONResponse(Helpers::manageInvalidUserToken());
+    }
 
-    if ($entity) {
-      $em->remove($entity);
+    $em = $this->getDoctrine()->getManager();
+    
+    $user = $em->getRepository('AdminAPIBundle:User')
+               ->findOneBy(array('username' => $userFromToken["username"]));
+
+    $id = (int)$this->getRequest()->get('id');
+    
+    $classifiedAdvertisement = $em->getRepository('AdminAPIBundle:ClassifiedAdvertisement')
+                                  ->findOneBy(array(
+                                      'seller' => $user,
+                                      'id' => $id,
+                                    ));
+    dump($user);
+
+    if ($classifiedAdvertisement) {
+      $em->remove($classifiedAdvertisement);
       $em->flush();
 
       $response = array(
@@ -271,5 +270,96 @@ class ClassifiedAdvertisementController extends Controller
     }
 
     return new JSONResponse($response);
+  }
+
+
+  /**
+   * @Route("/classified_advertisement")
+   * @Method({"POST"})
+   *
+   * @ApiDoc(
+   *   description="Create a classified advertisement",
+   *   ressource=false,
+   *   section="Classified avertisements",
+   *   headers={
+   *     {
+   *       "name"="X-TOKEN",
+   *       "description"="User token",
+   *       "required"=true
+   *     }
+   *   },
+   *   requirements={
+   *     {"name"="title", "dataType"="String", "required"=true, "description"="Title of the classified advertisement"},
+   *     {"name"="description", "dataType"="String", "required"=false, "description"="Description of the item sold"},
+   *     {"name"="price", "dataType"="float", "required"=false, "description"="Price of the item sold"},
+   *     {"name"="seller", "dataType"="Integer / String", "required"=true, "description"="User id or user username"},
+   *   }
+   * )
+   */
+  public function createClassifiedAdvertisementAction(Request $request)
+  {
+    // ^(?:[1-9]\d*|0)?(?:\.\d+)?$
+    
+    $token = $request->headers->get('X-TOKEN');
+    $userFromToken = $this->isUserTokenValid($token);
+    if (!$userFromToken) {
+     return new JSONResponse(Helpers::manageInvalidUserToken());
+    }
+
+    $em = $this->getDoctrine()->getManager();
+    
+    $seller = $em->getRepository('AdminAPIBundle:User')
+               ->findOneBy(array('username' => $userFromToken['username']));
+
+    if (!$seller) {
+      $response = array(
+        'data' => null,
+        'status_code' => Response::HTTP_NOT_FOUND,
+        'errors' => array(
+          'name' => ''
+        )
+      );
+    } else {
+      $title       = $this->getRequest()->get('title');
+      $description = $this->getRequest()->get('description');
+      $price       = $this->getRequest()->get('price');
+
+      $classifiedAdvertisement = new ClassifiedAdvertisement();
+      $classifiedAdvertisement->setTitle($title);
+      $classifiedAdvertisement->setSeller($seller);
+      $classifiedAdvertisement->setDescription($description);
+      $classifiedAdvertisement->setPrice($price);
+
+      $seller->addClassifiedAdvertisement($classifiedAdvertisement);
+
+      $em->persist($classifiedAdvertisement);
+      $em->persist($seller);
+      $em->flush();
+
+      $currentUser = $this->createProperUserObject($seller);
+
+      $response = array(
+        'data' => array(
+          'ressource' => $classifiedAdvertisement->getSerializableDatas($currentUser),
+          'flash_message' => Helpers::createFlashMessage('Ressource created', 'success', 1000)
+        ),
+        'status_code'=> Response::HTTP_CREATED
+      );
+    }
+
+    return new JSONResponse($response);
+  }
+
+  public function isUserTokenValid($token, Request $request = null)
+  {
+    // if (!$request->isXmlHttpRequest()) {
+    //   # code...
+    // }
+    try {
+      $user = $this->get('lexik_jwt_authentication.encoder')->decode($token);
+      return $user;
+    } catch (\Exception $e) {
+      return false;
+    }
   }
 }
