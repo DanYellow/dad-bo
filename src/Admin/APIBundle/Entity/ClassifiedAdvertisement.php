@@ -6,7 +6,6 @@ use Doctrine\ORM\Mapping as ORM;
 
 use Admin\APIBundle\Entity\User as User;
 
-use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * ClassifiedAdvertisement
@@ -26,7 +25,6 @@ class ClassifiedAdvertisement
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      *
-     * @Groups({"list", "details"})
      */
     private $id;
 
@@ -34,7 +32,6 @@ class ClassifiedAdvertisement
      * @var string
      *
      * @ORM\Column(name="title", type="string", length=255)
-     * @Groups({"list", "details"})
      */
     private $title;
 
@@ -42,7 +39,6 @@ class ClassifiedAdvertisement
      * @var string
      *
      * @ORM\Column(name="description", type="text", nullable=true)
-     * @Groups({"list", "details"})
      */
     private $description;
 
@@ -50,15 +46,13 @@ class ClassifiedAdvertisement
      * @var bool
      *
      * @ORM\Column(name="isActive", type="boolean")
-     * @Groups({"list", "details"})
      */
     private $isActive;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="price", type="decimal", precision=2, scale=2, nullable=true)
-     * @Groups({"list", "details"})
+     * @ORM\Column(name="price", type="decimal", precision=7, scale=2, nullable=true)
      */
     private $price;
 
@@ -66,7 +60,6 @@ class ClassifiedAdvertisement
      * @var \DateTime
      *
      * @ORM\Column(name="createdAt", type="datetime")
-     * @Groups({"list", "details"})
      */
     private $createdAt;
 
@@ -82,7 +75,6 @@ class ClassifiedAdvertisement
      * @var \DateTime
      *
      * @ORM\Column(name="lastUpdate", type="datetime", nullable=true)
-     * @Groups({"list", "details"})
      */
     private $lastUpdate;
 
@@ -90,7 +82,6 @@ class ClassifiedAdvertisement
      * @var string
      *
      * @ORM\Column(name="slug", type="string", length=255, nullable=true)
-     * @Groups({"list", "details"})
      */
     private $slug;
 
@@ -98,7 +89,6 @@ class ClassifiedAdvertisement
     /**
      * @ORM\ManyToOne(targetEntity="User", inversedBy="classifiedAdvertisements")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id", nullable=false)
-     * @Groups({"list", "details"})
      */
     private $seller;
 
@@ -108,6 +98,7 @@ class ClassifiedAdvertisement
         $this->isActive    = true;
         $this->description = "";
         $this->slug        = null;
+        $this->price       = 0;
     }
 
 
@@ -326,5 +317,14 @@ class ClassifiedAdvertisement
     public function getSeller()
     {
         return $this->seller;
+    }
+
+    /**
+     * @ORM\PrePersist()
+     * @ORM\PreUpdate()
+     */
+    public function preUpload()
+    {
+        $this->price = floatval(str_replace(',','', $this->price));
     }
 }

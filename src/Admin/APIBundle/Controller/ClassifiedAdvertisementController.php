@@ -17,10 +17,10 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 use Admin\APIBundle\Entity\ClassifiedAdvertisement as ClassifiedAdvertisement;
 
-$encoders = array(new JsonEncoder());
-$normalizers = array(new ObjectNormalizer());
+use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 
-$serializer = new Serializer($normalizers, $encoders);
+use Doctrine\ORM\Tools\Pagination\Paginator;
+
 
 class ClassifiedAdvertisementController extends Controller
 {
@@ -39,34 +39,71 @@ class ClassifiedAdvertisementController extends Controller
       return $standardizedData;
     }
 
+    function createProperUserObject($user) {
+      return $user = array(
+        'id' => $user->getId(),
+        'pseudo' => $user->getPseudo(),
+        'location' => $user->getLocation(),
+      );
+    }
+
     /**
-     * @Route("/classified_advertisements")
+     * @Route("/classified_advertisements/{page}")
      * @Method({"GET"})
+     * curl -XGET -d '' http://127.0.0.1:8000/app_dev.php/api/classified_advertisements/1
+     * @ApiDoc(
+     *   description="Get list of classified advertisements",
+     *   section="Classified avertisements",
+     *   filters={
+     *     {"name"="page", "dataType"="integer", "requirement"="\d+", "description"="Page number", "default"=1},
+     *   }
+     * )
      */
     public function getClassifiedAdvertisementsAction(Request $request)
     {
         $em = $this->getDoctrine()->getManager();
 
-        $classifiedAdvertisements = $em->getRepository('AdminAPIBundle:ClassifiedAdvertisement')
-                                       ->findBy(array('isActive' => true));
+        $nbItemsPerPage = 2;
+        $currentPage =  $this->getRequest()->get('page') ?: 1;
+
+        
+        $dql = "SELECT p FROM AdminAPIBundle:ClassifiedAdvertisement p WHERE p.isActive=1";
+        $query = $em->createQuery($dql)
+                       ->setFirstResult(0)
+                       ->setMaxResults($nbItemsPerPage, $nbItemsPerPage * ($currentPage - 1));
+        $paginator = new Paginator($query, $fetchJoinCollection = true);
+
+
+        $classifiedAdvertisements = $query->getResult();
 
         $encoders = array(new JsonEncoder());
         $normalizer = new ObjectNormalizer();
 
-        $normalizer->setCircularReferenceHandler(function ($object) {
-            return $object->getId();
-        });
-
         $serializer = new Serializer(array($normalizer), $encoders);
 
-        // $serializeDatas = $serializer->serialize($this->formatAPIResponse($classifiedAdvertisements), 'json', array('groups' => array('list')) );
+        $properClassifiedAdvertisements = array();
+        foreach ($classifiedAdvertisements as $key => $classifiedAdvertisement) {
+          $currentUser = $this->createProperUserObject($classifiedAdvertisement->getSeller());
 
-        $serializeDatas = $serializer->normalize($this->formatAPIResponse($classifiedAdvertisements), null, array('groups' => array('list')) );
-        dump($serializeDatas);
-        $serializeDatas = $serializer->serialize($serializeDatas, 'json');
-        // dump($classifiedAdvertisements);
-        // $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
-        // $serializeDatas = $serializer->serialize($this->formatAPIResponse($classifiedAdvertisements), 'json');
+          $lastUpdate = null;
+          if ($classifiedAdvertisement->getLastUpdate()) {
+            $lastUpdate = $classifiedAdvertisement->getLastUpdate()->format('Y-m-d H:i:s');
+          }
+          
+          $properClassifiedAdvertisements[] = array(
+              'id'          => $classifiedAdvertisement->getId(),
+              'title'       => $classifiedAdvertisement->getTitle(),
+              'description' => $classifiedAdvertisement->getDescription(),
+              'price'       => $classifiedAdvertisement->getPrice(),
+              'createdAt'   => $classifiedAdvertisement->getCreatedAt()->format('Y-m-d H:i:s'),
+              'lastUpdate'  => $lastUpdate,
+              'seller'      => $currentUser,
+          );
+        }
+
+        $objectResponse = array('data' => $properClassifiedAdvertisements);
+
+        $serializeDatas = $serializer->serialize($objectResponse, 'json' );
 
         $response = new Response($serializeDatas);
         // $response->headers->set('Content-Type', 'application/json');
@@ -76,13 +113,35 @@ class ClassifiedAdvertisementController extends Controller
 
     /**
      * @Route("/classified_advertisement")
-     * @Method({"GET"}) POST in prod
+     * @Method({"POST"}) POST in prod
+     *
+     * @example curl -XPOST -d "title=Xbox One&description=Console Xbox One presque neuve. \nvends car je ne l'aime plus.&price=250.90€&seller=djeanlou" http://127.0.0.1:8000/app_dev.php/api/classified_advertisement | pbcopy
+     *
+     * @ApiDoc(
+     *   description="Create a classified advertisement",
+     *   ressource=false,
+     *   section="Classified avertisements",
+     *   curl="refrefer",
+     *   requirements={
+     *     {"name"="title", "dataType"="String", "required"=true, "description"="Title of the classified advertisement"},
+     *   },
+     *   parameters={
+     *     {"name"="title", "dataType"="String", "required"=true, "description"="Title of the classified advertisement"},
+     *     {"name"="description", "dataType"="String", "required"=false, "description"="Description of the item sold"},
+     *     {"name"="price", "dataType"="float", "required"=false, "description"="Price of the item sold"},
+     *   }
+     * )
      */
     public function createClassifiedAdvertisementAction(Request $request)
     {
       $em = $this->getDoctrine()->getManager();
 
-      $id = $this->getRequest()->get('id');
+      $title       = $this->getRequest()->get('title');
+      $seller      = $this->getRequest()->get('seller');
+      $description = $this->getRequest()->get('description');
+      $price       = $this->getRequest()->get('price');
+
+      $id = $this->getRequest()->get('seller');
       if (is_int($id)) {
         $selector = array('id' => $id);
       } else {
@@ -93,20 +152,22 @@ class ClassifiedAdvertisementController extends Controller
                                        ->findOneBy($selector);
 
       $classifiedAdvertisement = new ClassifiedAdvertisement();
-      $classifiedAdvertisement->setTitle("hello");
+      $classifiedAdvertisement->setTitle($title);
       $classifiedAdvertisement->setSeller($seller);
+      $classifiedAdvertisement->setDescription($seller);
+      $classifiedAdvertisement->setPrice($price);
 
       $seller->addClassifiedAdvertisement($classifiedAdvertisement);
-
-      dump($seller->getClassifiedAdvertisements());
-
-      
 
       $em->persist($classifiedAdvertisement);
       $em->persist($seller);
       $em->flush();
 
-      return new Response("hello");
+      $response = array(
+        'data' => 'Ressource created'
+      );
+
+      return new JSONResponse($response);
     }
 
     /**
