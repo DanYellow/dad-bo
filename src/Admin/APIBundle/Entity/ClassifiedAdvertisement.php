@@ -327,4 +327,26 @@ class ClassifiedAdvertisement
     {
         $this->price = floatval(str_replace(',','', $this->price));
     }
+
+    /**
+     * Return all serializables datas to avoid circular ref
+     * @param  Array $currentUser current user's serializables datas
+     * @return Array              
+     */
+    public function getSerializableDatas($currentUser) {
+        $lastUpdate = null;
+        if ($this->getLastUpdate()) {
+          $lastUpdate = $this->getLastUpdate()->format('Y-m-d H:i:s');
+        }
+
+        return array(
+            'id'          => $this->getId(),
+            'title'       => $this->getTitle(),
+            'description' => $this->getDescription(),
+            'price'       => $this->getPrice(),
+            'createdAt'   => $this->getCreatedAt()->format('Y-m-d H:i:s'),
+            'lastUpdate'  => $lastUpdate,
+            'seller'      => $currentUser,
+        );
+    }
 }

@@ -74,9 +74,8 @@ swiftmailer:
     password:  "%mailer_password%"
     spool:     { type: memory }
 
-jms_serializer:
-    metadata:
-        directories:
-            FOSUB:
-                namespace_prefix: "FOS\\UserBundle"
-                path: "%kernel.root_dir%/serializer/FOSUserBundle"
+lexik_jwt_authentication:
+    private_key_path: %kernel.root_dir%/var/jwt/private.pem
+    public_key_path:  %kernel.root_dir%/var/jwt/public.pem
+    pass_phrase:  'dad_install42'
+    token_ttl:        3600
