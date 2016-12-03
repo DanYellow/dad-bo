@@ -27,9 +27,8 @@ Debug routes : php app/console debug:router
 Publish assets from public folder : php app/console assets:install
 
 
-
-
-http://obtao.com/blog/2013/12/creer-une-api-rest-dans-une-application-symfony/
+http://curlgenerator.com/
+https://github.com/nelmio/NelmioApiDocBundle/blob/master/Resources/doc/sandbox.rst
 
 
 SET FOREIGN_KEY_CHECKS=0; -- to disable them
