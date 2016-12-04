@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Admin\APIBundle\Entity\ClassifiedAdvertisement as ClassifiedAdvertisement;
 use Admin\APIBundle\Controller\Helpers as Helpers;
-use Admin\APIBundle\Controller\AuthentificationController as AuthentificationController;
+use Admin\APIBundle\Controller\BaseAPI as BaseAPI;
 
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 
@@ -21,17 +21,8 @@ use Doctrine\ORM\Tools\Pagination\Paginator;
 
 
 
-
-class ClassifiedAdvertisementController extends Controller
+class ClassifiedAdvertisementController extends BaseAPI
 {
-  function createProperUserObject(\Admin\APIBundle\Entity\User $seller) {
-    return $seller = array(
-      'id' => $seller->getId(),
-      'pseudo' => $seller->getPseudo(),
-      'location' => $seller->getLocation(),
-    );
-  }
-
   /**
    * ### Example response ###
    *
@@ -88,46 +79,7 @@ class ClassifiedAdvertisementController extends Controller
    */
   public function getClassifiedAdvertisements(Request $request)
   {
-    $em = $this->getDoctrine()->getManager();
-
-    $nbItemsPerPage = 2;
-    $currentPage = (int)$this->getRequest()->get('page') ?: 1;
-    if (!is_int($currentPage) || $currentPage > 1000) {
-      $currentPage = 1;
-    }
-    
-    $dql = "SELECT p FROM AdminAPIBundle:ClassifiedAdvertisement p WHERE p.isActive=1";
-    $query = $em->createQuery($dql)
-                   ->setFirstResult($nbItemsPerPage * ($currentPage - 1))
-                   ->setMaxResults($nbItemsPerPage);
-    $paginator = new Paginator($query, $fetchJoinCollection = true);
-
-    $totalPages = round(count($paginator)/$nbItemsPerPage);
-    $nextPage = ($currentPage + 1 > $totalPages) ? $totalPages : $currentPage + 1;
-    $prevPage = ($currentPage - 1 < 1) ? 1 : $currentPage - 1;
-
-    $classifiedAdvertisements = $query->getResult();
-
-    $properClassifiedAdvertisements = array();
-    foreach ($classifiedAdvertisements as $key => $classifiedAdvertisement) {
-      $currentUser = $this->createProperUserObject($classifiedAdvertisement->getSeller());
-
-      $properClassifiedAdvertisements[] = $classifiedAdvertisement->getSerializableDatas($currentUser);
-    }
-
-    $response = array(
-                  'status_code' => Response::HTTP_OK,
-                  'data' => $properClassifiedAdvertisements,
-                  'pagination' => array(
-                    'current'     => $currentPage,
-                    'first'       => 1,
-                    'last'        => $totalPages,
-                    'prev'        => $prevPage,
-                    'next'        => $nextPage,
-                    'total_pages' => $totalPages,
-                    'total_items' => count($paginator),
-                  )
-                );
+    $response = $this->retrieveClassifiedAdvertisements($request);
 
     return new JSONResponse($response);
   }
@@ -164,19 +116,22 @@ class ClassifiedAdvertisementController extends Controller
     $token = $request->headers->get('X-TOKEN');
     $userFromToken = $this->isUserTokenValid($token);
     if (!$userFromToken) {
-     return new JSONResponse(Helpers::manageInvalidUserToken());
+     return new JSONResponse(
+                  Helpers::manageInvalidUserToken()['container'], 
+                  Helpers::manageInvalidUserToken()['error_code']
+                );
     }
 
-    $user = $em->getRepository('AdminAPIBundle:User')
+    $em = $this->getDoctrine()->getManager();
+    $seller = $em->getRepository('AdminAPIBundle:User')
                ->findOneBy(array('username' => $userFromToken["username"]));
 
-    $em = $this->getDoctrine()->getManager();
 
     $id = (int)$this->getRequest()->get('id');
 
     $classifiedAdvertisement = $em->getRepository('AdminAPIBundle:ClassifiedAdvertisement')
                                   ->findOneBy(array(
-                                      'seller' => $user,
+                                      'seller' => $seller,
                                       'id' => $id,
                                     ));
 
@@ -191,8 +146,8 @@ class ClassifiedAdvertisementController extends Controller
 
       $response = array(
         'data' => array(
-          'ressource' => $classifiedAdvertisement->getSerializableDatas($currentUser),
-          'flash_message' => Helpers::createFlashMessage('Ressource created', 'success', 1000)
+          'ressource' => $classifiedAdvertisement->getSerializableDatas($seller),
+          'flash_message' => Helpers::createFlashMessage('Ressource updated', 'success', 1000)
         ),
         'status_code'=> Response::HTTP_CREATED
       );
@@ -204,6 +159,8 @@ class ClassifiedAdvertisementController extends Controller
         'status_code'=> Response::HTTP_NOT_FOUND
       );
     }
+
+    return new JSONResponse($response);
   }
 
   /**
@@ -233,7 +190,10 @@ class ClassifiedAdvertisementController extends Controller
     $token = $request->headers->get('X-TOKEN');
     $userFromToken = $this->isUserTokenValid($token);
     if (!$userFromToken) {
-     return new JSONResponse(Helpers::manageInvalidUserToken());
+      return new JSONResponse(
+                   Helpers::manageInvalidUserToken()['container'], 
+                   Helpers::manageInvalidUserToken()['error_code']
+                 );
     }
 
     $em = $this->getDoctrine()->getManager();
@@ -265,7 +225,8 @@ class ClassifiedAdvertisementController extends Controller
         'data' => array(
           'flash_message' => Helpers::createFlashMessage('Ressource not found', 'error', 1004)
         ),
-        'status_code'=> Response::HTTP_NOT_FOUND
+        'status_code' => Response::HTTP_NOT_FOUND,
+        'errors' => null
       );
     }
 
@@ -303,7 +264,10 @@ class ClassifiedAdvertisementController extends Controller
     $token = $request->headers->get('X-TOKEN');
     $userFromToken = $this->isUserTokenValid($token);
     if (!$userFromToken) {
-     return new JSONResponse(Helpers::manageInvalidUserToken());
+      return new JSONResponse(
+                  Helpers::manageInvalidUserToken()['container'], 
+                  Helpers::manageInvalidUserToken()['error_code']
+                );
     }
 
     $em = $this->getDoctrine()->getManager();

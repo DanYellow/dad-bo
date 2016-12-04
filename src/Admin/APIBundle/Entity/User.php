@@ -162,4 +162,13 @@ class User extends BaseUser
     {
         return $this->classifiedAdvertisements;
     }
+
+
+    function getSerializableDatas() {
+        return array(
+          'id' => $this->getId(),
+          'pseudo' => $this->getPseudo(),
+          'location' => $this->getLocation(),
+        );
+    }
 }
