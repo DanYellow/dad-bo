@@ -5,6 +5,7 @@ namespace Admin\APIBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 use Admin\APIBundle\Entity\User as User;
+use Admin\APIBundle\Entity\Category as Category;
 
 
 /**
@@ -85,6 +86,11 @@ class ClassifiedAdvertisement
      */
     private $slug;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="Category", inversedBy="classifiedAdvertisements")
+     * @ORM\JoinColumn(name="category_id", referencedColumnName="id")
+     */
+    private $category;
 
     /**
      * @ORM\ManyToOne(targetEntity="User", inversedBy="classifiedAdvertisements")
@@ -358,5 +364,28 @@ class ClassifiedAdvertisement
             'is_mine' => false,
             'seller'      => $seller,
         );
+    }
+
+    /**
+     * Set category
+     *
+     * @param \Admin\APIBundle\Entity\Category $category
+     * @return ClassifiedAdvertisement
+     */
+    public function setCategory(\Admin\APIBundle\Entity\Category $category = null)
+    {
+        $this->category = $category;
+
+        return $this;
+    }
+
+    /**
+     * Get category
+     *
+     * @return \Admin\APIBundle\Entity\Category 
+     */
+    public function getCategory()
+    {
+        return $this->category;
     }
 }

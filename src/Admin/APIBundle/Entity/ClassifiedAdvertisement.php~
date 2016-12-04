@@ -5,11 +5,8 @@ namespace Admin\APIBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 use Admin\APIBundle\Entity\User as User;
+use Admin\APIBundle\Entity\Category as Category;
 
-use JMS\Serializer\Annotation\ExclusionPolicy;
-use JMS\Serializer\Annotation\Expose;
-use JMS\Serializer\Annotation\Groups;
-use JMS\Serializer\Annotation\VirtualProperty;
 
 /**
  * ClassifiedAdvertisement
@@ -18,7 +15,7 @@ use JMS\Serializer\Annotation\VirtualProperty;
  * @ORM\Entity(repositoryClass="Admin\APIBundle\Repository\ClassifiedAdvertisementRepository")
  * @ORM\HasLifecycleCallbacks
  *
- * @ExclusionPolicy("all") 
+ * 
  */
 class ClassifiedAdvertisement
 {
@@ -29,7 +26,6 @@ class ClassifiedAdvertisement
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      *
-     * @Expose
      */
     private $id;
 
@@ -37,7 +33,6 @@ class ClassifiedAdvertisement
      * @var string
      *
      * @ORM\Column(name="title", type="string", length=255)
-     * @Expose
      */
     private $title;
 
@@ -45,7 +40,6 @@ class ClassifiedAdvertisement
      * @var string
      *
      * @ORM\Column(name="description", type="text", nullable=true)
-     * @Expose
      */
     private $description;
 
@@ -53,15 +47,13 @@ class ClassifiedAdvertisement
      * @var bool
      *
      * @ORM\Column(name="isActive", type="boolean")
-     * @Expose
      */
     private $isActive;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="price", type="decimal", precision=2, scale=2, nullable=true)
-     * @Expose
+     * @ORM\Column(name="price", type="decimal", precision=7, scale=2, nullable=true)
      */
     private $price;
 
@@ -69,7 +61,6 @@ class ClassifiedAdvertisement
      * @var \DateTime
      *
      * @ORM\Column(name="createdAt", type="datetime")
-     * @Expose
      */
     private $createdAt;
 
@@ -85,7 +76,6 @@ class ClassifiedAdvertisement
      * @var \DateTime
      *
      * @ORM\Column(name="lastUpdate", type="datetime", nullable=true)
-     * @Expose
      */
     private $lastUpdate;
 
@@ -93,24 +83,29 @@ class ClassifiedAdvertisement
      * @var string
      *
      * @ORM\Column(name="slug", type="string", length=255, nullable=true)
-     * @Expose
      */
     private $slug;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="Category", inversedBy="classifiedAdvertisements")
+     * @ORM\JoinColumn(name="category_id", referencedColumnName="id")
+     */
+    private $category;
 
     /**
      * @ORM\ManyToOne(targetEntity="User", inversedBy="classifiedAdvertisements")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id", nullable=false)
-     * @Expose
      */
     private $seller;
 
     public function __construct()
     {
         $this->createdAt   = new \DateTime();
+        $this->lastUpdate  = new \DateTime();
         $this->isActive    = true;
         $this->description = "";
         $this->slug        = null;
+        $this->price       = 0;
     }
 
 
@@ -132,7 +127,9 @@ class ClassifiedAdvertisement
      */
     public function setTitle($title)
     {
-        $this->title = $title;
+        if ($title !== null) {
+            $this->title = $title;
+        }
 
         return $this;
     }
@@ -167,6 +164,10 @@ class ClassifiedAdvertisement
      */
     public function getDescription()
     {
+        if ($description !== null) {
+            $this->description = $description;
+        }
+
         return $this->description;
     }
 
@@ -201,7 +202,7 @@ class ClassifiedAdvertisement
      */
     public function setPrice($price)
     {
-        $this->price = $price;
+        $this->price = ($this->price !== null ? $price : 0);
 
         return $this;
     }
@@ -316,7 +317,9 @@ class ClassifiedAdvertisement
      */
     public function setSeller(\Admin\APIBundle\Entity\User $seller)
     {
-        $this->seller = $seller;
+        if ($seller !== null) {
+            $this->seller = $seller;
+        }
 
         return $this;
     }
@@ -329,5 +332,37 @@ class ClassifiedAdvertisement
     public function getSeller()
     {
         return $this->seller;
+    }
+
+    /**
+     * @ORM\PrePersist()
+     * @ORM\PreUpdate()
+     */
+    public function preUpload()
+    {
+        $this->price = floatval(str_replace(',','', $this->price));
+    }
+
+    /**
+     * Return all serializables datas to avoid circular ref
+     * @param  Array $currentUser current user's serializables datas
+     * @return Array              
+     */
+    public function getSerializableDatas($seller) {
+        $lastUpdate = null;
+        if ($this->getLastUpdate()) {
+          $lastUpdate = $this->getLastUpdate()->format('Y-m-d H:i:s');
+        }
+
+        return array(
+            'id'          => $this->getId(),
+            'title'       => $this->getTitle(),
+            'description' => $this->getDescription(),
+            'price'       => $this->getPrice(),
+            'created_at'   => $this->getCreatedAt()->format('Y-m-d H:i:s'),
+            'last_update'  => $lastUpdate,
+            'is_mine' => false,
+            'seller'      => $seller,
+        );
     }
 }

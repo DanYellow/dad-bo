@@ -2,24 +2,17 @@
 
 namespace Admin\APIBundle\Entity;
 
-use FOS\UserBundle\Model\User as BaseUser;
 use Doctrine\ORM\Mapping as ORM;
-
-use Symfony\Component\Validator\Constraints as Assert;
-use Doctrine\Common\Collections\ArrayCollection;
-
 
 use Admin\APIBundle\Entity\ClassifiedAdvertisement as ClassifiedAdvertisement;
 
 /**
- * User
+ * Category
  *
- * @ORM\Table(name="seller")
- * @ORM\Entity(repositoryClass="Admin\APIBundle\Repository\UserRepository")
- * @ORM\HasLifecycleCallbacks
- *
+ * @ORM\Table(name="category")
+ * @ORM\Entity(repositoryClass="Admin\APIBundle\Repository\CategoryRepository")
  */
-class User extends BaseUser
+class Category
 {
     /**
      * @var int
@@ -28,36 +21,29 @@ class User extends BaseUser
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    protected $id;
+    private $id;
 
     /**
      * @var string
      *
-     * @Assert\NotBlank()
-     * @ORM\Column(name="pseudo", type="string", length=15, unique=true)
+     * @ORM\Column(name="name", type="string", length=50, unique=true)
      */
-    private $pseudo;
+    private $name;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="location", type="string", length=50, nullable=true)
+     * @ORM\Column(name="slugName", type="string", length=50, unique=true)
      */
-    private $location;
+    private $slugName;
 
     /**
-     * @ORM\OneToMany(targetEntity="ClassifiedAdvertisement", mappedBy="seller", cascade={"persist", "merge"})
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity="ClassifiedAdvertisement", mappedBy="category", cascade={"persist", "merge"})
      */
     private $classifiedAdvertisements;
 
-
-    public function __construct()
-    {
-        parent::__construct();
-        
-        $this->classifiedAdvertisements = new ArrayCollection();
-        $this->roles = ['ROLE_ADMIN'];
-    }
 
     /**
      * Get id
@@ -70,67 +56,63 @@ class User extends BaseUser
     }
 
     /**
-     * Set pseudo
+     * Set name
      *
-     * @param string $pseudo
-     * @return User
+     * @param string $name
+     * @return Category
      */
-    public function setPseudo($pseudo)
+    public function setName($name)
     {
-        $this->pseudo = $pseudo;
+        $this->name = $name;
 
         return $this;
     }
 
     /**
-     * Get pseudo
+     * Get name
      *
      * @return string 
      */
-    public function getPseudo()
+    public function getName()
     {
-        return $this->pseudo;
+        return $this->name;
     }
 
     /**
-     * Set location
+     * Set slugName
      *
-     * @param string $location
-     * @return User
+     * @param string $slugName
+     * @return Category
      */
-    public function setLocation($location)
+    public function setSlugName($slugName)
     {
-        $this->location = $location;
+        $this->slugName = $slugName;
 
         return $this;
     }
 
     /**
-     * Get location
+     * Get slugName
      *
      * @return string 
      */
-    public function getLocation()
+    public function getSlugName()
     {
-        return $this->location;
+        return $this->slugName;
     }
-
-
     /**
-     * @ORM\PrePersist()
-     * @ORM\PreUpdate()
+     * Constructor
      */
-    public function preUpload()
+    public function __construct()
     {
-        $this->email = sha1($this->email);
-        $this->pseudo = $this->username;
+        $this->classifiedAdvertisements = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
     /**
      * Add classifiedAdvertisements
      *
      * @param \Admin\APIBundle\Entity\ClassifiedAdvertisement $classifiedAdvertisements
-     * @return User
+     * @return Category
      */
     public function addClassifiedAdvertisement(\Admin\APIBundle\Entity\ClassifiedAdvertisement $classifiedAdvertisements)
     {
@@ -157,14 +139,5 @@ class User extends BaseUser
     public function getClassifiedAdvertisements()
     {
         return $this->classifiedAdvertisements;
-    }
-
-
-    function getSerializableDatas() {
-        return array(
-          'id' => $this->getId(),
-          'pseudo' => $this->getPseudo(),
-          'location' => $this->getLocation(),
-        );
     }
 }
