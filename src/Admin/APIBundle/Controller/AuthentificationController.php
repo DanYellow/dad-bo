@@ -30,7 +30,7 @@ class AuthentificationController extends Controller
      * }
      *
      * curl auth
-     * curl -X POST http://localhost:8000/api/get_token -d username=djeanlou -d password=123456789C | pbcopy
+     * curl -X POST http://localhost:8000/api/get_token -d username=test1 -d password=password! | pbcopy
      *  
      * @Route(path="/get_token", name="token_authentication")
      * @Method({"POST"})
@@ -41,6 +41,7 @@ class AuthentificationController extends Controller
      *   section="Authentification/Subscription",
      *   requirements={
      *     {"name"="username", "dataType"="String", "required"=true, "description"="user username"},
+     *     {"name"="password", "dataType"="String", "required"=true, "description"="user password"},
      *   },
      * )
      */
@@ -75,16 +76,16 @@ class AuthentificationController extends Controller
           'status_code' => Response::HTTP_UNAUTHORIZED,
           'errors' => null
         );
+      } else {
+        $token = $this->get('lexik_jwt_authentication.encoder')
+                      ->encode(['username' => $user->getUsername()]);
+
+        $response = array(
+          'data' => array('token' => $token),
+          'status_code' => Response::HTTP_ACCEPTED,
+          'errors' => null
+        );
       }
-
-      $token = $this->get('lexik_jwt_authentication.encoder')
-                    ->encode(['username' => $user->getUsername()]);
-
-      $response = array(
-        'data' => array('token' => $token),
-        'status_code' => Response::HTTP_UNAUTHORIZED,
-        'errors' => null
-      );
 
       return new JsonResponse($response, $response['status_code']);
     }
@@ -100,15 +101,18 @@ class AuthentificationController extends Controller
      * curl auth
      * curl -X POST http://localhost:8000/api/get_token -d username=djeanlou -d password=123456789C | pbcopy
      *  
-     * @Route(path="/signup", name="token_authentication")
-     * @Method({"GET"})
+     * @Route(path="/sign_up", name="sign_up")
+     * @Method({"POST"})
      * 
      * @ApiDoc(
-     *   description="Get authentification token for user",
+     *   description="Allows user to sign up to the service",
      *   ressource=false,
      *   section="Authentification/Subscription",
      *   requirements={
      *     {"name"="username", "dataType"="String", "required"=true, "description"="user username"},
+     *     {"name"="password", "dataType"="String", "required"=true, "description"="user password"},
+     *     {"name"="password_confirmation", "dataType"="String", "required"=true, "description"="user password confirmation"},
+     *     {"name"="email", "dataType"="String", "required"=true, "description"="user mail"},
      *   },
      * )
      */
@@ -117,21 +121,31 @@ class AuthentificationController extends Controller
       $response = array();
 
       try {
-        // $username = $request->request->get('username');
-        // $password = $request->request->get('password');
-        // $email = $request->request->get('email');
-        
-        $em = $this->getDoctrine()->getManager();
+        $username = $request->request->get('username');
+        $password = $request->request->get('password');
+        $passwordConfirmation = $request->request->get('password_confirmation');
+        $email = $request->request->get('email');
 
-        $username = $request->query->get('username');
-        $password = $request->query->get('password');
-        $email = $request->query->get('email');
+        if ($password !== $passwordConfirmation) {
+          $response = array(
+            'data' => array(
+              'flash_message' => Helpers::createFlashMessage('Passwords doesn\'t match', 'error', 1006)
+            ),
+            'status_code'=> Response::HTTP_NOT_FOUND,
+            'errors' => [
+              array('name' => $e->getMessage())
+            ]
+          );
+          return new JSONResponse($response, $response['status_code']);
+        }
+        
 
         $user = new User();
         $user->setUsername($username);
         $user->setPassword($password);
         $user->setEmail($email);
 
+        $em = $this->getDoctrine()->getManager();
         $em->persist($user);
         $em->flush();
 
@@ -144,6 +158,7 @@ class AuthentificationController extends Controller
           ),
           'status_code'=> Response::HTTP_CREATED
         );
+
       } catch (\Exception $e) {
         $response = array(
           'data' => array(
@@ -156,6 +171,6 @@ class AuthentificationController extends Controller
         );
       }
 
-      return new JSONResponse($response);
+      return new JSONResponse($response, $response['status_code']);
     }
 }

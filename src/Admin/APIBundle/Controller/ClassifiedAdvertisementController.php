@@ -24,63 +24,42 @@ use Doctrine\ORM\Tools\Pagination\Paginator;
 class ClassifiedAdvertisementController extends BaseAPI
 {
   /**
-   * ### Example response ###
-   *
-   *     {
-   *       "status_code": 200,
-   *       "data": [{
-   *         "id": 33,
-   *         "title": "Xbox One",
-   *         "description": "Je vends ma Xbox One en attendant patiemment et sans jeux vidéo, la sortie du monstre.\n Jean Dispaplusse",
-   *         "price": "0.00",
-   *         "createdAt": "2016-12-03 00:12:23",
-   *         "lastUpdate": null,
-   *         "seller": {
-   *           "id": 1,
-   *           "pseudo": "djeanlou",
-   *           "location": null
-   *          }
-   *       },{
-   *          "id": 34,
-   *          "title": "PS4",
-   *          "description": "Je vends ma PS4 pour m'acheter une PS4 Pro et un PS VR",
-   *          "price": "90.00",
-   *          "createdAt": "2016-12-03 00:14:33",
-   *          "lastUpdate": null,
-   *          "seller": {
-   *            "id": 1,
-   *            "pseudo": "djeanlou",
-   *            "location": null
-   *          }
-   *        }
-   *      ],
-   *      "pagination": {
-   *        "current":3,
-   *        "first":1,
-   *        "last":3,
-   *        "prev":2,
-   *        "next":3,
-   *        "total_pages":3,
-   *        "total_items":5
-   *       }
-   *     }
+   * 
    *
    * @Route("/classified_advertisements")
-   * @Route("/classified_advertisements/{page}", defaults={"page" = 1})
+   * @Route("/classified_advertisements?p={page}&q={query}", defaults={"p" = 1, "q": null})
    * @Method({"GET"})
    * 
    * @ApiDoc(
    *   description="Get list of classified advertisements",
    *   section="Classified avertisements",
+   *   headers={
+   *     {
+   *       "name"="X-TOKEN",
+   *       "description"="User token",
+   *       "required"=false
+   *     }
+   *   },
    *   filters={
-   *     {"name"="page", "dataType"="integer", "requirement"="\d+", "description"="Page number. If requirement isn't satisfied ", "default"=1},
+   *     {"name"="p", "dataType"="integer", "requirement"="\d+", "description"="Page number"},
+   *     {"name"="q", "dataType"="string", "description"="User query", "default"=null},
    *   }
    * )
    */
   public function getClassifiedAdvertisements(Request $request)
   {
-    $response = $this->retrieveClassifiedAdvertisements($request);
+    dump($this->getRequest()->get('p'));
+    $token = $request->headers->get('X-TOKEN');
+    $userFromToken = $this->isUserTokenValid($token);
+    
+    $user = null;
+    if ($userFromToken) {
+      $em = $this->getDoctrine()->getManager();
+      $user = $em->getRepository('AdminAPIBundle:User')
+                 ->findOneBy(array('username' => $userFromToken["username"]));
+    }
 
+    $response = $this->retrieveClassifiedAdvertisements($request, $user);
     return new JSONResponse($response);
   }
 
@@ -117,7 +96,7 @@ class ClassifiedAdvertisementController extends BaseAPI
     $userFromToken = $this->isUserTokenValid($token);
     if (!$userFromToken) {
      return new JSONResponse(
-                  Helpers::manageInvalidUserToken()['container'], 
+                  Helpers::manageInvalidUserToken()['container'],
                   Helpers::manageInvalidUserToken()['error_code']
                 );
     }
@@ -251,9 +230,10 @@ class ClassifiedAdvertisementController extends BaseAPI
    *   },
    *   requirements={
    *     {"name"="title", "dataType"="String", "required"=true, "description"="Title of the classified advertisement"},
+   *   },
+   *   parameters={
    *     {"name"="description", "dataType"="String", "required"=false, "description"="Description of the item sold"},
    *     {"name"="price", "dataType"="float", "required"=false, "description"="Price of the item sold"},
-   *     {"name"="seller", "dataType"="Integer / String", "required"=true, "description"="User id or user username"},
    *   }
    * )
    */
@@ -300,7 +280,7 @@ class ClassifiedAdvertisementController extends BaseAPI
       $em->persist($seller);
       $em->flush();
 
-      $currentUser = $this->createProperUserObject($seller);
+      $currentUser = $seller->getSerializableDatas();
 
       $response = array(
         'data' => array(

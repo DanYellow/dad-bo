@@ -24,6 +24,6 @@ class Helpers
         array('name' => '')
       ]
     );
-    return ["container" => $response, "error_code" => Response::HTTP_UNAUTHORIZED];
+    return ['container' => $response, 'error_code' => $response['status_code']];
   }
 }

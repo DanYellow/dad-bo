@@ -34,9 +34,10 @@ https://github.com/nelmio/NelmioApiDocBundle/blob/master/Resources/doc/sandbox.r
 SET FOREIGN_KEY_CHECKS=0; -- to disable them
 SET FOREIGN_KEY_CHECKS=1; 
 
-123456789C
-
 ### URL :
 
 http://127.0.0.1:8000/_console
 http://127.0.0.1:8000/api/classified_advertisements
+
+
+https://knpuniversity.com/screencast/symfony-rest4/create-json-web-token

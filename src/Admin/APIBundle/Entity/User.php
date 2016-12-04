@@ -61,6 +61,7 @@ class User extends BaseUser
         parent::__construct();
         
         $this->classifiedAdvertisements = new ArrayCollection();
+        $this->roles = ['ROLE_ADMIN'];
     }
 
     /**

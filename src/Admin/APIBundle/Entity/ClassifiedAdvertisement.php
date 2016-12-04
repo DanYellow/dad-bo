@@ -95,6 +95,7 @@ class ClassifiedAdvertisement
     public function __construct()
     {
         $this->createdAt   = new \DateTime();
+        $this->lastUpdate  = new \DateTime();
         $this->isActive    = true;
         $this->description = "";
         $this->slug        = null;
@@ -333,7 +334,7 @@ class ClassifiedAdvertisement
      * @param  Array $currentUser current user's serializables datas
      * @return Array              
      */
-    public function getSerializableDatas($currentUser) {
+    public function getSerializableDatas($seller) {
         $lastUpdate = null;
         if ($this->getLastUpdate()) {
           $lastUpdate = $this->getLastUpdate()->format('Y-m-d H:i:s');
@@ -344,9 +345,10 @@ class ClassifiedAdvertisement
             'title'       => $this->getTitle(),
             'description' => $this->getDescription(),
             'price'       => $this->getPrice(),
-            'createdAt'   => $this->getCreatedAt()->format('Y-m-d H:i:s'),
-            'lastUpdate'  => $lastUpdate,
-            'seller'      => $currentUser,
+            'created_at'   => $this->getCreatedAt()->format('Y-m-d H:i:s'),
+            'last_update'  => $lastUpdate,
+            'is_mine' => false,
+            'seller'      => $seller,
         );
     }
 }
