@@ -21,7 +21,7 @@ class UserController extends BaseAPI
   /**
    * 
    * @Route("/user/{user}/classified_advertisements")
-   * @Route("/user/{user}/classified_advertisements/?page={page}", defaults={"page" = 1})
+   * @Route("/user/{user}/classified_advertisements?page={page}", defaults={"page" = 1})
    * @Method({"GET"})
    * 
    * @ApiDoc(

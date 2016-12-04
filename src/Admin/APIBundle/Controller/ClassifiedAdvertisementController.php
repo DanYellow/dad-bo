@@ -26,8 +26,8 @@ class ClassifiedAdvertisementController extends BaseAPI
   /**
    * 
    *
-   * @Route("/classified_advertisements")
-   * @Route("/classified_advertisements?p={page}&q={query}", defaults={"p" = 1, "q": null})
+   * @Route("/classified_advertisements", defaults={"p": 1, "q": null})
+   * @Route("/classified_advertisements?p={page}&q={query}", defaults={"p": 1, "q": "null"})
    * @Method({"GET"})
    * 
    * @ApiDoc(
@@ -41,14 +41,13 @@ class ClassifiedAdvertisementController extends BaseAPI
    *     }
    *   },
    *   filters={
-   *     {"name"="p", "dataType"="integer", "requirement"="\d+", "description"="Page number"},
-   *     {"name"="q", "dataType"="string", "description"="User query", "default"=null},
+   *     {"name"="p", "dataType"="integer", "requirement"="\d+", "description"="Page number", "default"=1},
+   *     {"name"="q", "dataType"="string", "description"="User query", "default"="null"},
    *   }
    * )
    */
   public function getClassifiedAdvertisements(Request $request)
   {
-    dump($this->getRequest()->get('p'));
     $token = $request->headers->get('X-TOKEN');
     $userFromToken = $this->isUserTokenValid($token);
     
@@ -105,7 +104,6 @@ class ClassifiedAdvertisementController extends BaseAPI
     $seller = $em->getRepository('AdminAPIBundle:User')
                ->findOneBy(array('username' => $userFromToken["username"]));
 
-
     $id = (int)$this->getRequest()->get('id');
 
     $classifiedAdvertisement = $em->getRepository('AdminAPIBundle:ClassifiedAdvertisement')
@@ -115,21 +113,33 @@ class ClassifiedAdvertisementController extends BaseAPI
                                     ));
 
     if ($classifiedAdvertisement) {
-      $classifiedAdvertisement->setTitle($this->getRequest()->get('title'));
-      $classifiedAdvertisement->setDescription($this->getRequest()->get('description'));
-      $classifiedAdvertisement->setPrice($this->getRequest()->get('price'));
-      $classifiedAdvertisement->setLastUpdate(new \DateTime());
+      try {
+        $classifiedAdvertisement->setTitle($this->getRequest()->get('title'));
+        $classifiedAdvertisement->setDescription($this->getRequest()->get('description'));
+        $classifiedAdvertisement->setPrice($this->getRequest()->get('price'));
+        $classifiedAdvertisement->setLastUpdate(new \DateTime());
 
-      $em->persist($classifiedAdvertisement);
-      $em->flush();
+        $em->persist($classifiedAdvertisement);
+        $em->flush();
 
-      $response = array(
-        'data' => array(
-          'ressource' => $classifiedAdvertisement->getSerializableDatas($seller),
-          'flash_message' => Helpers::createFlashMessage('Ressource updated', 'success', 1000)
-        ),
-        'status_code'=> Response::HTTP_CREATED
-      );
+        $response = array(
+          'data' => array(
+            'ressource' => $classifiedAdvertisement->getSerializableDatas($seller->getSerializableDatas()),
+            'flash_message' => Helpers::createFlashMessage('Ressource updated', 'success', 1001)
+          ),
+          'status_code'=> Response::HTTP_CREATED
+        );
+      } catch (\Exception $e) {
+        $response = array(
+          'data' => array(
+            'flash_message' => Helpers::createFlashMessage('Missing required parameters', 'error', 1004)
+          ),
+          'status_code'=> Response::HTTP_UNPROCESSABLE_ENTITY,
+          'errors' => [
+            array('name' => $e->getMessage())
+          ]
+        );
+      }
     } else {
       $response = array(
         'data' => array(
@@ -187,7 +197,6 @@ class ClassifiedAdvertisementController extends BaseAPI
                                       'seller' => $user,
                                       'id' => $id,
                                     ));
-    dump($user);
 
     if ($classifiedAdvertisement) {
       $em->remove($classifiedAdvertisement);
@@ -197,7 +206,8 @@ class ClassifiedAdvertisementController extends BaseAPI
         'data' => array(
           'flash_message' => Helpers::createFlashMessage('Element removed', 'success', 1000)
         ),
-        'status_code'=> Response::HTTP_CREATED
+        'status_code'=> Response::HTTP_CREATED,
+        'errors' => null
       );
     } else {
       $response = array(
@@ -222,11 +232,7 @@ class ClassifiedAdvertisementController extends BaseAPI
    *   ressource=false,
    *   section="Classified avertisements",
    *   headers={
-   *     {
-   *       "name"="X-TOKEN",
-   *       "description"="User token",
-   *       "required"=true
-   *     }
+   *     { "name"="X-TOKEN", "description"="User token", "required"=true }
    *   },
    *   requirements={
    *     {"name"="title", "dataType"="String", "required"=true, "description"="Title of the classified advertisement"},
@@ -237,7 +243,7 @@ class ClassifiedAdvertisementController extends BaseAPI
    *   }
    * )
    */
-  public function createClassifiedAdvertisementAction(Request $request)
+  public function createClassifiedAdvertisement(Request $request)
   {
     // ^(?:[1-9]\d*|0)?(?:\.\d+)?$
     
@@ -292,18 +298,5 @@ class ClassifiedAdvertisementController extends BaseAPI
     }
 
     return new JSONResponse($response);
-  }
-
-  public function isUserTokenValid($token, Request $request = null)
-  {
-    // if (!$request->isXmlHttpRequest()) {
-    //   # code...
-    // }
-    try {
-      $user = $this->get('lexik_jwt_authentication.encoder')->decode($token);
-      return $user;
-    } catch (\Exception $e) {
-      return false;
-    }
   }
 }

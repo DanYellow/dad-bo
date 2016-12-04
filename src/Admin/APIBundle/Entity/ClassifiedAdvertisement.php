@@ -121,7 +121,9 @@ class ClassifiedAdvertisement
      */
     public function setTitle($title)
     {
-        $this->title = $title;
+        if ($title !== null) {
+            $this->title = $title;
+        }
 
         return $this;
     }
@@ -156,6 +158,10 @@ class ClassifiedAdvertisement
      */
     public function getDescription()
     {
+        if ($description !== null) {
+            $this->description = $description;
+        }
+
         return $this->description;
     }
 
@@ -190,7 +196,7 @@ class ClassifiedAdvertisement
      */
     public function setPrice($price)
     {
-        $this->price = $price;
+        $this->price = ($this->price !== null ? $price : 0);
 
         return $this;
     }
@@ -305,7 +311,9 @@ class ClassifiedAdvertisement
      */
     public function setSeller(\Admin\APIBundle\Entity\User $seller)
     {
-        $this->seller = $seller;
+        if ($seller !== null) {
+            $this->seller = $seller;
+        }
 
         return $this;
     }
