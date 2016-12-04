@@ -152,7 +152,9 @@ class ClassifiedAdvertisement
      */
     public function setDescription($description)
     {
-        $this->description = $description;
+        if ($description !== null) {
+            $this->description = $description;
+        }
 
         return $this;
     }
@@ -164,10 +166,6 @@ class ClassifiedAdvertisement
      */
     public function getDescription()
     {
-        if ($description !== null) {
-            $this->description = $description;
-        }
-
         return $this->description;
     }
 

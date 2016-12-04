@@ -25,7 +25,8 @@
         "lexik/jwt-authentication-bundle": "^2.0",
         "nelmio/api-doc-bundle": "^2.13",
         "friendsofsymfony/user-bundle": "~2.0@dev",
-        "symfony/serializer": "3.1.0"
+        "symfony/serializer": "3.1.0",
+        "cocur/slugify": "^2.3"
     },
     "require-dev": {
         "sensio/generator-bundle": "~3.0",

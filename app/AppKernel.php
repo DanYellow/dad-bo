@@ -24,8 +24,8 @@ class AppKernel extends Kernel
 
             new Nelmio\ApiDocBundle\NelmioApiDocBundle(),
             new FOS\UserBundle\FOSUserBundle(),
-            new JMS\SerializerBundle\JMSSerializerBundle(),
             new Lexik\Bundle\JWTAuthenticationBundle\LexikJWTAuthenticationBundle(),
+            new Cocur\Slugify\Bridge\Symfony\CocurSlugifyBundle(),
             
             new Admin\APIBundle\AdminAPIBundle(),
         );

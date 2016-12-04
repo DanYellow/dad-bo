@@ -60,7 +60,7 @@ class UserController extends BaseAPI
     $response = $this->retrieveClassifiedAdvertisements($request, $user, true);
 
 
-    return new JSONResponse($response);
+    return new JSONResponse($response, $response['status_code']);
   }
 
   /**
@@ -109,6 +109,6 @@ class UserController extends BaseAPI
       );
 
 
-    return new JSONResponse($response);
+    return new JSONResponse($response, $response['status_code']);
   }
 }

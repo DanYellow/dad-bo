@@ -11,6 +11,7 @@ use Admin\APIBundle\Entity\ClassifiedAdvertisement as ClassifiedAdvertisement;
  *
  * @ORM\Table(name="category")
  * @ORM\Entity(repositoryClass="Admin\APIBundle\Repository\CategoryRepository")
+ * @ORM\HasLifecycleCallbacks
  */
 class Category
 {
@@ -33,7 +34,7 @@ class Category
     /**
      * @var string
      *
-     * @ORM\Column(name="slugName", type="string", length=50, unique=true)
+     * @ORM\Column(name="slug_name", type="string", length=50, unique=true)
      */
     private $slugName;
 
@@ -139,5 +140,18 @@ class Category
     public function getClassifiedAdvertisements()
     {
         return $this->classifiedAdvertisements;
+    }
+
+    /**
+     * Return all serializables datas to avoid circular references
+     * @return Array              
+     */
+    public function getSerializableDatas($seller) {
+        return array(
+            'id'        => $this->getId(),
+            'name'      => $this->getName(),
+            'slug_name' => $this->getSlugName(),
+            'nb_items'  => count($this->getClassifiedAdvertisements()),
+        );
     }
 }
