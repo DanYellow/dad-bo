@@ -25,9 +25,8 @@ class ClassifiedAdvertisementController extends BaseAPI
 {
   /**
    * 
-   *
    * @Route("/classified_advertisements", defaults={"p": 1, "q": null})
-   * @Route("/classified_advertisements?p={page}&q={query}", defaults={"p": 1, "q": "null"})
+   * @Route("/classified_advertisements?p={page}&q={query}&c={category}", defaults={"p": 1, "q": "null", "c": "Jeux vidéo"})
    * @Method({"GET"})
    * 
    * @ApiDoc(
@@ -43,6 +42,7 @@ class ClassifiedAdvertisementController extends BaseAPI
    *   filters={
    *     {"name"="p", "dataType"="integer", "requirement"="\d+", "description"="Page number", "default"=1},
    *     {"name"="q", "dataType"="string", "description"="User query", "default"="null"},
+   *     {"name"="c", "dataType"="string", "description"="User category choice", "default"="Jeux vidéo"},
    *   }
    * )
    */
@@ -51,15 +51,78 @@ class ClassifiedAdvertisementController extends BaseAPI
     $token = $request->headers->get('X-TOKEN');
     $userFromToken = $this->isUserTokenValid($token);
     
-    $user = null;
+    $currentUser = null;
     if ($userFromToken) {
       $em = $this->getDoctrine()->getManager();
-      $user = $em->getRepository('AdminAPIBundle:User')
-                 ->findOneBy(array('username' => $userFromToken["username"]));
+      $currentUser = $em->getRepository('AdminAPIBundle:User')
+                 ->findOneBy(array('username' => $userFromToken['username']));
     }
 
-    $response = $this->retrieveClassifiedAdvertisements($request, $user);
+    $response = $this->retrieveClassifiedAdvertisements($request, $currentUser);
     return new JSONResponse($response);
+  }
+
+  /**
+   * @Route("/classified_advertisement/{id}")
+   * @Method({"GET"})
+   *
+   * @ApiDoc(
+   *   description="Get a specific classified advertisement",
+   *   ressource=false,
+   *   section="Classified avertisements",
+   *   headers={
+   *     {
+   *       "name"="X-TOKEN",
+   *       "description"="User token",
+   *       "required"=true
+   *     }
+   *   },
+   *   requirements={
+   *     {"name"="id", "dataType"="Integer", "required"=true, "description"="id the classified advertisement"},
+   *   },
+   * )
+   */
+  public function getClassifiedAdvertisement(Request $request)
+  {
+    $id = (int)$this->getRequest()->get('id');
+
+    $em = $this->getDoctrine()->getManager();
+    $classifiedAdvertisement = $em->getRepository('AdminAPIBundle:ClassifiedAdvertisement')
+                                  ->findOneBy(array('id' => $id));
+
+    if (!$classifiedAdvertisement) {
+      $response = array(
+        'data' => array(
+          'flash_message' => Helpers::createFlashMessage('Ressource not found', 'error', 1004)
+        ),
+        'status_code' => Response::HTTP_NOT_FOUND,
+        'errors' => null
+      );
+    } else {
+      $token = $request->headers->get('X-TOKEN');
+      $userFromToken = $this->isUserTokenValid($token);
+      
+      $currentUser = null;
+      if ($userFromToken) {
+        $currentUser = $em->getRepository('AdminAPIBundle:User')
+                          ->findOneBy(array('username' => $userFromToken['username']));
+      }
+
+      $isMine = ($classifiedAdvertisement->getSeller() === $currentUser) ? true : false;
+      $classifiedAdvertisement = $classifiedAdvertisement->getSerializableDatas();
+      $classifiedAdvertisement['is_mine'] = $isMine;
+
+      $response = array(
+        'success' => true,
+        'status_code' => Response::HTTP_OK,
+        'data' => array(
+          'ressource' => $classifiedAdvertisement,
+        ),
+        'errors' => null
+      );
+    }
+
+    return new JSONResponse($response, $response['status_code']);
   }
 
   /**
@@ -102,7 +165,7 @@ class ClassifiedAdvertisementController extends BaseAPI
 
     $em = $this->getDoctrine()->getManager();
     $seller = $em->getRepository('AdminAPIBundle:User')
-               ->findOneBy(array('username' => $userFromToken["username"]));
+               ->findOneBy(array('username' => $userFromToken['username']));
 
     $id = (int)$this->getRequest()->get('id');
 
@@ -123,6 +186,7 @@ class ClassifiedAdvertisementController extends BaseAPI
         $em->flush();
 
         $response = array(
+          'success' => true,
           'data' => array(
             'ressource' => $classifiedAdvertisement->getSerializableDatas($seller->getSerializableDatas()),
             'flash_message' => Helpers::createFlashMessage('Ressource updated', 'success', 1001)
@@ -131,6 +195,7 @@ class ClassifiedAdvertisementController extends BaseAPI
         );
       } catch (\Exception $e) {
         $response = array(
+          'success' => false,
           'data' => array(
             'flash_message' => Helpers::createFlashMessage('Missing required parameters', 'error', 1004)
           ),
@@ -142,6 +207,7 @@ class ClassifiedAdvertisementController extends BaseAPI
       }
     } else {
       $response = array(
+        'success' => false,
         'data' => array(
           'flash_message' => Helpers::createFlashMessage('Ressource not found', 'error', 1004)
         ),
@@ -149,7 +215,7 @@ class ClassifiedAdvertisementController extends BaseAPI
       );
     }
 
-    return new JSONResponse($response);
+    return new JSONResponse($response, $response['status_code']);
   }
 
   /**
@@ -188,7 +254,7 @@ class ClassifiedAdvertisementController extends BaseAPI
     $em = $this->getDoctrine()->getManager();
     
     $user = $em->getRepository('AdminAPIBundle:User')
-               ->findOneBy(array('username' => $userFromToken["username"]));
+               ->findOneBy(array('username' => $userFromToken['username']));
 
     $id = (int)$this->getRequest()->get('id');
     
@@ -203,6 +269,7 @@ class ClassifiedAdvertisementController extends BaseAPI
       $em->flush();
 
       $response = array(
+        'success' => true,
         'data' => array(
           'flash_message' => Helpers::createFlashMessage('Element removed', 'success', 1000)
         ),
@@ -211,6 +278,7 @@ class ClassifiedAdvertisementController extends BaseAPI
       );
     } else {
       $response = array(
+        'success' => false,
         'data' => array(
           'flash_message' => Helpers::createFlashMessage('Ressource not found', 'error', 1004)
         ),
@@ -240,6 +308,7 @@ class ClassifiedAdvertisementController extends BaseAPI
    *   parameters={
    *     {"name"="description", "dataType"="String", "required"=false, "description"="Description of the item sold"},
    *     {"name"="price", "dataType"="float", "required"=false, "description"="Price of the item sold"},
+   *     {"name"="category", "dataType"="string", "required"=false, "description"="Category of element"},
    *   }
    * )
    */
@@ -263,6 +332,7 @@ class ClassifiedAdvertisementController extends BaseAPI
 
     if (!$seller) {
       $response = array(
+        'success' => false,
         'data' => null,
         'status_code' => Response::HTTP_NOT_FOUND,
         'errors' => array(
@@ -273,12 +343,18 @@ class ClassifiedAdvertisementController extends BaseAPI
       $title       = $this->getRequest()->get('title');
       $description = $this->getRequest()->get('description');
       $price       = $this->getRequest()->get('price');
+      $category    = $this->getRequest()->get('category');
 
       $classifiedAdvertisement = new ClassifiedAdvertisement();
       $classifiedAdvertisement->setTitle($title);
       $classifiedAdvertisement->setSeller($seller);
       $classifiedAdvertisement->setDescription($description);
       $classifiedAdvertisement->setPrice($price);
+
+      $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('name' => $category));
+      if ($categoryEntity) {
+        $classifiedAdvertisement->setCategory($categoryEntity);
+      }
 
       $seller->addClassifiedAdvertisement($classifiedAdvertisement);
 
@@ -289,6 +365,7 @@ class ClassifiedAdvertisementController extends BaseAPI
       $currentUser = $seller->getSerializableDatas();
 
       $response = array(
+        'success' => true,
         'data' => array(
           'ressource' => $classifiedAdvertisement->getSerializableDatas($currentUser),
           'flash_message' => Helpers::createFlashMessage('Ressource created', 'success', 1000)

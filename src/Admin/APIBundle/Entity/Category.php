@@ -137,21 +137,30 @@ class Category
      *
      * @return \Doctrine\Common\Collections\Collection 
      */
-    public function getClassifiedAdvertisements()
+    public function getClassifiedAdvertisements($areActive = false)
     {
-        return $this->classifiedAdvertisements;
+        if (!$areActive) {
+            return $this->classifiedAdvertisements;
+        } else {
+            $func = function($classifiedAdvertisement) {
+                return $classifiedAdvertisement->getIsActive();
+            };
+
+            return array_map($func, $this->getClassifiedAdvertisements()->toArray());
+        }
     }
+
 
     /**
      * Return all serializables datas to avoid circular references
      * @return Array              
      */
-    public function getSerializableDatas($seller) {
+    public function getSerializableDatas() {
         return array(
             'id'        => $this->getId(),
             'name'      => $this->getName(),
             'slug_name' => $this->getSlugName(),
-            'nb_items'  => count($this->getClassifiedAdvertisements()),
+            'nb_items'  => count($this->getClassifiedAdvertisements(true)),
         );
     }
 }

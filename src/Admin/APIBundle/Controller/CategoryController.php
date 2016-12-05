@@ -82,7 +82,7 @@ class CategoryController extends BaseAPI
       $response = array(
         'data' => array(
           'ressource' => $category->getSerializableDatas(),
-          'flash_message' => Helpers::createFlashMessage('Ressource updated', 'success', 1001)
+          'flash_message' => Helpers::createFlashMessage('Ressource created', 'success', 1001)
         ),
         'status_code'=> Response::HTTP_CREATED,
         'success' => true,
@@ -100,6 +100,45 @@ class CategoryController extends BaseAPI
         ]
       );
     }
+
+    return new JSONResponse($response, $response['status_code']);
+  }
+
+  /**
+   * 
+   * @Route("/categories")
+   * @Method({"GET"})
+   * 
+   * @ApiDoc(
+   *   description="Returns a list of every category",
+   *   ressource=false,
+   *   section="Category",
+   *   headers={
+   *     {
+   *       "name"="X-TOKEN",
+   *       "description"="User token",
+   *       "required"=true
+   *     }
+   *   }
+   * )
+   */
+  public function getCategories(Request $request)
+  {
+    $em = $this->getDoctrine()->getManager();
+    $categories = $em->getRepository('AdminAPIBundle:Category')
+               ->findAll();
+
+    $properCategories = array();
+    foreach ($categories as $category) {      
+      $properCategories[] = $category->getSerializableDatas();
+    }
+
+    $response = array(
+                  'status_code' => Response::HTTP_OK,
+                  'success' => true,
+                  'data' => ['list' => $properCategories],
+                  
+                );
 
     return new JSONResponse($response, $response['status_code']);
   }

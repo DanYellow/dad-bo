@@ -39,7 +39,6 @@ class BaseAPI extends Controller
       $currentPage = 1;
     }
 
-    
     $dql = 'SELECT p FROM AdminAPIBundle:ClassifiedAdvertisement p WHERE p.isActive=1';
 
     if ($dataForASeller) {
@@ -50,10 +49,22 @@ class BaseAPI extends Controller
 
     $search = $this->getRequest()->get('q', null);
     if ($search) {
-      // dump($this->getRequest()->get('q'));
       $dql .= ' AND p.title LIKE :query';
       $parameters['query'] = '%' . $search . '%';
-      // $parameters['query'] = $search;
+    }
+
+    $category = $this->getRequest()->get('c', null);
+    if ($category) {
+      $dql .= ' AND p.category = :category';
+
+      try {
+        $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('name' => $category));
+        
+        $parameters['category'] = $categoryEntity;
+      } catch (\Exception $e) {
+        $parameters['category'] = null;
+      }
+      
     }
 
     $dql .= ' ORDER BY p.createdAt DESC';
@@ -76,8 +87,6 @@ class BaseAPI extends Controller
       $classifiedAdvertisementSeller = $classifiedAdvertisement->getSeller();
       $isMine = ($classifiedAdvertisementSeller === $currentUser) ? true : false;
 
-      if ($this->get('security.context')->isGranted('ROLE_ADMIN')) { dump('fezfzefze'); }
-
       $classifiedAdvertisement = $classifiedAdvertisement->getSerializableDatas($classifiedAdvertisementSeller->getSerializableDatas());
       $classifiedAdvertisement['is_mine'] = $isMine;
       $properClassifiedAdvertisements[] = $classifiedAdvertisement;
@@ -86,6 +95,7 @@ class BaseAPI extends Controller
 
     $response = array(
                   'status_code' => Response::HTTP_OK,
+                  'success' => true,
                   'data' => ['list' => $properClassifiedAdvertisements],
                   'pagination' => array(
                     'current'     => $currentPage,

@@ -346,10 +346,15 @@ class ClassifiedAdvertisement
      * @param  Array $currentUser current user's serializables datas
      * @return Array              
      */
-    public function getSerializableDatas($seller) {
+    public function getSerializableDatas() {
         $lastUpdate = null;
         if ($this->getLastUpdate()) {
           $lastUpdate = $this->getLastUpdate()->format('Y-m-d H:i:s');
+        }
+
+        $category = null;
+        if ($this->getCategory()) {
+            $category = $this->getCategory()->getSerializableDatas();
         }
 
         return array(
@@ -357,10 +362,11 @@ class ClassifiedAdvertisement
             'title'       => $this->getTitle(),
             'description' => $this->getDescription(),
             'price'       => $this->getPrice(),
-            'created_at'   => $this->getCreatedAt()->format('Y-m-d H:i:s'),
-            'last_update'  => $lastUpdate,
-            'is_mine' => false,
-            'seller'      => $seller,
+            'created_at'  => $this->getCreatedAt()->format('Y-m-d H:i:s'),
+            'last_update' => $lastUpdate,
+            'category'    => $category,
+            'is_mine'     => false,
+            'seller'      => $this->getSeller()->getSerializableDatas(),
         );
     }
 
