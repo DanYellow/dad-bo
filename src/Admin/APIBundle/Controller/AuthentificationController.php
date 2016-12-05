@@ -59,6 +59,7 @@ class AuthentificationController extends Controller
       // User not exists
       if(!$user) {
         $response = array(
+          'success' => false,
           'data' => array(
             'flash_message' => Helpers::createFlashMessage('User not found', 'error', 1004)
           ),
@@ -70,6 +71,7 @@ class AuthentificationController extends Controller
       // Test password
       if(!$this->get('security.password_encoder')->isPasswordValid($user, $password)) {
         $response = array(
+          'success' => false,
           'data' => array(
             'flash_message' => Helpers::createFlashMessage('Password incorrect', 'error', 1004)
           ),
@@ -81,6 +83,7 @@ class AuthentificationController extends Controller
                       ->encode(['username' => $user->getUsername()]);
 
         $response = array(
+          'success' => true,
           'data' => array('token' => $token),
           'status_code' => Response::HTTP_ACCEPTED,
           'errors' => null
@@ -128,6 +131,7 @@ class AuthentificationController extends Controller
 
         if ($password !== $passwordConfirmation) {
           $response = array(
+            'success' => false,
             'data' => array(
               'flash_message' => Helpers::createFlashMessage('Passwords doesn\'t match', 'error', 1006)
             ),
@@ -152,6 +156,7 @@ class AuthentificationController extends Controller
         $currentUser = $user->getSerializableDatas();
 
         $response = array(
+          'success' => true,
           'data' => array(
             'ressource' => $currentUser,
             'flash_message' => Helpers::createFlashMessage('Ressource created', 'success', 1000)
@@ -161,6 +166,7 @@ class AuthentificationController extends Controller
 
       } catch (\Exception $e) {
         $response = array(
+          'success' => false,
           'data' => array(
             'flash_message' => Helpers::createFlashMessage('Ressource not found', 'error', 1004)
           ),

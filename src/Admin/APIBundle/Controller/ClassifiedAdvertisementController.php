@@ -177,10 +177,17 @@ class ClassifiedAdvertisementController extends BaseAPI
 
     if ($classifiedAdvertisement) {
       try {
+        $category    = $this->getRequest()->get('category');
+        
         $classifiedAdvertisement->setTitle($this->getRequest()->get('title'));
         $classifiedAdvertisement->setDescription($this->getRequest()->get('description'));
         $classifiedAdvertisement->setPrice($this->getRequest()->get('price'));
         $classifiedAdvertisement->setLastUpdate(new \DateTime());
+
+        $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('name' => $category));
+        if ($categoryEntity) {
+          $classifiedAdvertisement->setCategory($categoryEntity);
+        }
 
         $em->persist($classifiedAdvertisement);
         $em->flush();
