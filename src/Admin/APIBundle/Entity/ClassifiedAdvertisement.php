@@ -53,7 +53,7 @@ class ClassifiedAdvertisement
     /**
      * @var string
      *
-     * @ORM\Column(name="price", type="decimal", precision=7, scale=2, nullable=true)
+     * @ORM\Column(name="price", type="integer", nullable=true, options={"unsigned"=true})
      */
     private $price;
 
@@ -361,7 +361,7 @@ class ClassifiedAdvertisement
             'id'          => $this->getId(),
             'title'       => $this->getTitle(),
             'description' => $this->getDescription(),
-            'price'       => $this->getPrice(),
+            'price'       => (int)$this->getPrice(),
             'created_at'  => $this->getCreatedAt()->format('Y-m-d H:i:s'),
             'last_update' => $lastUpdate,
             'category'    => $category,

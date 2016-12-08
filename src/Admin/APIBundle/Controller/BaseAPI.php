@@ -77,8 +77,8 @@ class BaseAPI extends Controller
     $paginator = new Paginator($query, $fetchJoinCollection = true);
 
     $totalPages = round(count($paginator)/$nbItemsPerPage);
-    $nextPage = ($currentPage + 1 > $totalPages) ? $totalPages : $currentPage + 1;
-    $prevPage = ($currentPage - 1 < 1) ? 1 : $currentPage - 1;
+    $nextPage = ($currentPage + 1 > $totalPages) ? null : $currentPage + 1;
+    $prevPage = ($currentPage - 1 < 1) ? null : $currentPage - 1;
 
     $classifiedAdvertisements = $query->getResult();
 

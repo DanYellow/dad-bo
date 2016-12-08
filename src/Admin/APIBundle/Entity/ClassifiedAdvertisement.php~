@@ -53,7 +53,7 @@ class ClassifiedAdvertisement
     /**
      * @var string
      *
-     * @ORM\Column(name="price", type="decimal", precision=7, scale=2, nullable=true)
+     * @ORM\Column(name="price", type="int", nullable=true)
      */
     private $price;
 
@@ -152,7 +152,9 @@ class ClassifiedAdvertisement
      */
     public function setDescription($description)
     {
-        $this->description = $description;
+        if ($description !== null) {
+            $this->description = $description;
+        }
 
         return $this;
     }
@@ -164,10 +166,6 @@ class ClassifiedAdvertisement
      */
     public function getDescription()
     {
-        if ($description !== null) {
-            $this->description = $description;
-        }
-
         return $this->description;
     }
 
@@ -348,21 +346,50 @@ class ClassifiedAdvertisement
      * @param  Array $currentUser current user's serializables datas
      * @return Array              
      */
-    public function getSerializableDatas($seller) {
+    public function getSerializableDatas() {
         $lastUpdate = null;
         if ($this->getLastUpdate()) {
           $lastUpdate = $this->getLastUpdate()->format('Y-m-d H:i:s');
+        }
+
+        $category = null;
+        if ($this->getCategory()) {
+            $category = $this->getCategory()->getSerializableDatas();
         }
 
         return array(
             'id'          => $this->getId(),
             'title'       => $this->getTitle(),
             'description' => $this->getDescription(),
-            'price'       => $this->getPrice(),
-            'created_at'   => $this->getCreatedAt()->format('Y-m-d H:i:s'),
-            'last_update'  => $lastUpdate,
-            'is_mine' => false,
-            'seller'      => $seller,
+            'price'       => (int)$this->getPrice(),
+            'created_at'  => $this->getCreatedAt()->format('Y-m-d H:i:s'),
+            'last_update' => $lastUpdate,
+            'category'    => $category,
+            'is_mine'     => false,
+            'seller'      => $this->getSeller()->getSerializableDatas(),
         );
+    }
+
+    /**
+     * Set category
+     *
+     * @param \Admin\APIBundle\Entity\Category $category
+     * @return ClassifiedAdvertisement
+     */
+    public function setCategory(\Admin\APIBundle\Entity\Category $category = null)
+    {
+        $this->category = $category;
+
+        return $this;
+    }
+
+    /**
+     * Get category
+     *
+     * @return \Admin\APIBundle\Entity\Category 
+     */
+    public function getCategory()
+    {
+        return $this->category;
     }
 }

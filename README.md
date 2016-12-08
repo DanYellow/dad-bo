@@ -24,6 +24,8 @@ Clear cache (dev) : php app/console ca:cl -e=dev
 Clear cache (prod) : php app/console ca:cl -e=prod
 Debug routes : php app/console debug:router
 
+// ^[\w._-]+@(digitas|digitaslbi)+\.[\w]{2,}$
+
 Publish assets from public folder : php app/console assets:install
 
 

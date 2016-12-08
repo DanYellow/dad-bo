@@ -63,18 +63,19 @@ class ClassifiedAdvertisementController extends BaseAPI
   }
 
   /**
-   * @Route("/classified_advertisement/{id}")
+   * @Route("/classified_advertisement", requirements={"_method" = "GET"})
+   * @Route("/classified_advertisement?id={id}", requirements={"_method" = "GET"})
    * @Method({"GET"})
    *
    * @ApiDoc(
    *   description="Get a specific classified advertisement",
-   *   ressource=false,
+   *   resource=false,
    *   section="Classified avertisements",
    *   headers={
    *     {
    *       "name"="X-TOKEN",
    *       "description"="User token",
-   *       "required"=true
+   *       "required"=false
    *     }
    *   },
    *   requirements={
@@ -93,7 +94,7 @@ class ClassifiedAdvertisementController extends BaseAPI
     if (!$classifiedAdvertisement) {
       $response = array(
         'data' => array(
-          'flash_message' => Helpers::createFlashMessage('Ressource not found', 'error', 1004)
+          'flash_message' => Helpers::createFlashMessage('Resource not found', 'error', 1004)
         ),
         'status_code' => Response::HTTP_NOT_FOUND,
         'errors' => null
@@ -116,7 +117,7 @@ class ClassifiedAdvertisementController extends BaseAPI
         'success' => true,
         'status_code' => Response::HTTP_OK,
         'data' => array(
-          'ressource' => $classifiedAdvertisement,
+          'resource' => $classifiedAdvertisement,
         ),
         'errors' => null
       );
@@ -126,12 +127,13 @@ class ClassifiedAdvertisementController extends BaseAPI
   }
 
   /**
-   * @Route("/classified_advertisement/{id}")
+   * @Route("/classified_advertisement", requirements={"_method" = "POST"})
+   * @Route("/classified_advertisement?id={id}", requirements={"_method" = "POST"})
    * @Method({"POST"})
    *
    * @ApiDoc(
    *   description="Update a classified advertisement",
-   *   ressource=false,
+   *   resource=false,
    *   section="Classified avertisements",
    *   headers={
    *     {
@@ -195,8 +197,8 @@ class ClassifiedAdvertisementController extends BaseAPI
         $response = array(
           'success' => true,
           'data' => array(
-            'ressource' => $classifiedAdvertisement->getSerializableDatas($seller->getSerializableDatas()),
-            'flash_message' => Helpers::createFlashMessage('Ressource updated', 'success', 1001)
+            'resource' => $classifiedAdvertisement->getSerializableDatas($seller->getSerializableDatas()),
+            'flash_message' => Helpers::createFlashMessage('resource updated', 'success', 1001)
           ),
           'status_code'=> Response::HTTP_CREATED
         );
@@ -216,7 +218,7 @@ class ClassifiedAdvertisementController extends BaseAPI
       $response = array(
         'success' => false,
         'data' => array(
-          'flash_message' => Helpers::createFlashMessage('Ressource not found', 'error', 1004)
+          'flash_message' => Helpers::createFlashMessage('resource not found', 'error', 1004)
         ),
         'status_code'=> Response::HTTP_NOT_FOUND
       );
@@ -226,12 +228,13 @@ class ClassifiedAdvertisementController extends BaseAPI
   }
 
   /**
-   * @Route("/classified_advertisement/{id}")
+   * @Route("/classified_advertisement", requirements={"_method" = "DELETE"})
+   * @Route("/classified_advertisement?id={id}", requirements={"_method" = "DELETE"})
    * @Method({"DELETE"})
    *
    * @ApiDoc(
    *   description="Delete a classified advertisement",
-   *   ressource=false,
+   *   resource=false,
    *   section="Classified avertisements",
    *   headers={
    *     {
@@ -287,7 +290,7 @@ class ClassifiedAdvertisementController extends BaseAPI
       $response = array(
         'success' => false,
         'data' => array(
-          'flash_message' => Helpers::createFlashMessage('Ressource not found', 'error', 1004)
+          'flash_message' => Helpers::createFlashMessage('resource not found', 'error', 1004)
         ),
         'status_code' => Response::HTTP_NOT_FOUND,
         'errors' => null
@@ -299,12 +302,13 @@ class ClassifiedAdvertisementController extends BaseAPI
 
 
   /**
-   * @Route("/classified_advertisement")
+   * 
+   * @Route("/classified_advertisement", requirements={"_method" = "POST"})
    * @Method({"POST"})
    *
    * @ApiDoc(
    *   description="Create a classified advertisement",
-   *   ressource=false,
+   *   resource=false,
    *   section="Classified avertisements",
    *   headers={
    *     { "name"="X-TOKEN", "description"="User token", "required"=true }
@@ -322,7 +326,6 @@ class ClassifiedAdvertisementController extends BaseAPI
   public function createClassifiedAdvertisement(Request $request)
   {
     // ^(?:[1-9]\d*|0)?(?:\.\d+)?$
-    
     $token = $request->headers->get('X-TOKEN');
     $userFromToken = $this->isUserTokenValid($token);
     if (!$userFromToken) {
@@ -374,8 +377,8 @@ class ClassifiedAdvertisementController extends BaseAPI
       $response = array(
         'success' => true,
         'data' => array(
-          'ressource' => $classifiedAdvertisement->getSerializableDatas($currentUser),
-          'flash_message' => Helpers::createFlashMessage('Ressource created', 'success', 1000)
+          'resource' => $classifiedAdvertisement->getSerializableDatas($currentUser),
+          'flash_message' => Helpers::createFlashMessage('resource created', 'success', 1000)
         ),
         'status_code'=> Response::HTTP_CREATED
       );
