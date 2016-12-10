@@ -28,11 +28,8 @@ class AuthentificationController extends Controller
      *   "status_code":200,
      *   "errors":null
      * }
-     *
-     * curl auth
-     * curl -X POST http://localhost:8000/api/get_token -d username=test1 -d password=password! | pbcopy
-     *  
-     * @Route(path="/get_token", name="token_authentication")
+     * 
+     * @Route(path="/get_token")
      * @Method({"POST"})
      * 
      * @ApiDoc(
@@ -47,15 +44,16 @@ class AuthentificationController extends Controller
      */
     public function getToken(Request $request)
     {
-      $username = $this->getRequest()->get('username');
-      $password = $this->getRequest()->get('password');
+      $data = json_decode($request->getContent(), true);
+
+      $username = $data['username'];
+      $password = $data['password'];
 
       $user = $this->getDoctrine()
                    ->getRepository('AdminAPIBundle:User')
                    ->findOneBy(['username' => $username]);
 
       $response = array();
-
       // User not exists
       if(!$user) {
         $response = array(
@@ -66,6 +64,8 @@ class AuthentificationController extends Controller
           'status_code' => Response::HTTP_NOT_FOUND,
           'errors' => null
         );
+
+        return new JsonResponse($response, $response['status_code']);
       }
 
       // Test password

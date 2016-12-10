@@ -25,8 +25,7 @@ class ClassifiedAdvertisementController extends BaseAPI
 {
   /**
    * 
-   * @Route("/classified_advertisements", defaults={"p": 1, "q": null})
-   * @Route("/classified_advertisements?p={page}&q={query}&c={category}", defaults={"p": 1, "q": "null", "c": "Jeux vidéo"})
+   * @Route("/classified_advertisements/{p}", defaults={"p": 1, "q": null, "c": null})
    * @Method({"GET"})
    * 
    * @ApiDoc(
@@ -63,8 +62,7 @@ class ClassifiedAdvertisementController extends BaseAPI
   }
 
   /**
-   * @Route("/classified_advertisement", requirements={"_method" = "GET"})
-   * @Route("/classified_advertisement?id={id}", requirements={"_method" = "GET"})
+   * @Route("/classified_advertisement/{id}")
    * @Method({"GET"})
    *
    * @ApiDoc(
@@ -127,8 +125,7 @@ class ClassifiedAdvertisementController extends BaseAPI
   }
 
   /**
-   * @Route("/classified_advertisement", requirements={"_method" = "POST"})
-   * @Route("/classified_advertisement?id={id}", requirements={"_method" = "POST"})
+   * @Route("/classified_advertisement/{id}")
    * @Method({"POST"})
    *
    * @ApiDoc(
@@ -228,8 +225,7 @@ class ClassifiedAdvertisementController extends BaseAPI
   }
 
   /**
-   * @Route("/classified_advertisement", requirements={"_method" = "DELETE"})
-   * @Route("/classified_advertisement?id={id}", requirements={"_method" = "DELETE"})
+   * @Route("/classified_advertisement/{id}")
    * @Method({"DELETE"})
    *
    * @ApiDoc(
