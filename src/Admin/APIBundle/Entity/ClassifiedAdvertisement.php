@@ -201,6 +201,7 @@ class ClassifiedAdvertisement
     public function setPrice($price)
     {
         $this->price = ($this->price !== null ? $price : 0);
+        $this->price = ($this->price > 0 ? $price : 0);
 
         return $this;
     }

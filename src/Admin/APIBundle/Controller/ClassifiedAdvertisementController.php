@@ -15,6 +15,8 @@ use Admin\APIBundle\Entity\ClassifiedAdvertisement as ClassifiedAdvertisement;
 use Admin\APIBundle\Controller\Helpers as Helpers;
 use Admin\APIBundle\Controller\BaseAPI as BaseAPI;
 
+use Admin\APIBundle\Form\ClassifiedAdvertisementType;
+
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 
 use Doctrine\ORM\Tools\Pagination\Paginator;
@@ -177,10 +179,12 @@ class ClassifiedAdvertisementController extends BaseAPI
     if ($classifiedAdvertisement) {
       try {
         $category    = $this->getRequest()->get('category');
+
+        $data = json_decode($request->getContent(), true);
         
-        $classifiedAdvertisement->setTitle($this->getRequest()->get('title'));
-        $classifiedAdvertisement->setDescription($this->getRequest()->get('description'));
-        $classifiedAdvertisement->setPrice($this->getRequest()->get('price'));
+        $classifiedAdvertisement->setTitle($data['title']);
+        $classifiedAdvertisement->setDescription($data['description']);
+        $classifiedAdvertisement->setPrice($data['price']);
         $classifiedAdvertisement->setLastUpdate(new \DateTime());
 
         $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('name' => $category));
@@ -321,7 +325,6 @@ class ClassifiedAdvertisementController extends BaseAPI
    */
   public function createClassifiedAdvertisement(Request $request)
   {
-    // ^(?:[1-9]\d*|0)?(?:\.\d+)?$
     $token = $request->headers->get('X-TOKEN');
     $userFromToken = $this->isUserTokenValid($token);
     if (!$userFromToken) {
@@ -346,38 +349,53 @@ class ClassifiedAdvertisementController extends BaseAPI
         )
       );
     } else {
-      $title       = $this->getRequest()->get('title');
-      $description = $this->getRequest()->get('description');
-      $price       = $this->getRequest()->get('price');
-      $category    = $this->getRequest()->get('category');
+      $data = json_decode($request->getContent(), true);
+
+      $title       = $data['title'];
+      $description = $data['description'];
+      $price       = $data['price'];
+      $category    = $data['category'];
 
       $classifiedAdvertisement = new ClassifiedAdvertisement();
-      $classifiedAdvertisement->setTitle($title);
-      $classifiedAdvertisement->setSeller($seller);
-      $classifiedAdvertisement->setDescription($description);
-      $classifiedAdvertisement->setPrice($price);
 
-      $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('name' => $category));
-      if ($categoryEntity) {
-        $classifiedAdvertisement->setCategory($categoryEntity);
+      $form = $this->get('form.factory')->create(new ClassifiedAdvertisementType, $classifiedAdvertisement);
+
+      if (!$form->handleRequest($request)->isValid()) {
+        $response = array(
+          'success' => false,
+          'data' => array(
+            'flash_message' => Helpers::createFlashMessage('Missing arguments', 'error', 1000)
+          ),
+          'status_code'=> Response::HTTP_BAD_REQUEST
+        );
+      } else {
+        $classifiedAdvertisement->setTitle($title);
+        $classifiedAdvertisement->setSeller($seller);
+        $classifiedAdvertisement->setDescription($description);
+        $classifiedAdvertisement->setPrice($price);
+
+        $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('name' => $category));
+        if ($categoryEntity) {
+          $classifiedAdvertisement->setCategory($categoryEntity);
+        }
+
+        $seller->addClassifiedAdvertisement($classifiedAdvertisement);
+
+        $em->persist($classifiedAdvertisement);
+        $em->persist($seller);
+        $em->flush();
+
+        $currentUser = $seller->getSerializableDatas();
+
+        $response = array(
+          'success' => true,
+          'data' => array(
+            'resource' => $classifiedAdvertisement->getSerializableDatas($currentUser),
+            'flash_message' => Helpers::createFlashMessage('resource created', 'success', 1000)
+          ),
+          'status_code'=> Response::HTTP_CREATED
+        );
       }
-
-      $seller->addClassifiedAdvertisement($classifiedAdvertisement);
-
-      $em->persist($classifiedAdvertisement);
-      $em->persist($seller);
-      $em->flush();
-
-      $currentUser = $seller->getSerializableDatas();
-
-      $response = array(
-        'success' => true,
-        'data' => array(
-          'resource' => $classifiedAdvertisement->getSerializableDatas($currentUser),
-          'flash_message' => Helpers::createFlashMessage('resource created', 'success', 1000)
-        ),
-        'status_code'=> Response::HTTP_CREATED
-      );
     }
 
     return new JSONResponse($response);

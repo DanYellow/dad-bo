@@ -59,7 +59,7 @@ class AuthentificationController extends Controller
         $response = array(
           'success' => false,
           'data' => array(
-            'flash_message' => Helpers::createFlashMessage('User not found', 'error', 1004)
+            'flash_message' => Helpers::createFlashMessage('User not found', 'error', 1009)
           ),
           'status_code' => Response::HTTP_NOT_FOUND,
           'errors' => null
@@ -84,7 +84,10 @@ class AuthentificationController extends Controller
 
         $response = array(
           'success' => true,
-          'data' => array('token' => $token),
+          'data' => array(
+            'resource' => array('token' => $token),
+            'flash_message' => Helpers::createFlashMessage('Logged', 'success', 1011)
+          ),
           'status_code' => Response::HTTP_ACCEPTED,
           'errors' => null
         );
@@ -121,13 +124,14 @@ class AuthentificationController extends Controller
      */
     public function signUp(Request $request)
     {
+      $data = json_decode($request->getContent(), true);
       $response = array();
 
       try {
-        $username = $request->request->get('username');
-        $password = $request->request->get('password');
-        $passwordConfirmation = $request->request->get('password_confirmation');
-        $email = $request->request->get('email');
+        $username             = $data['username'];
+        $password             = $data['password'];
+        $passwordConfirmation = $data['password_confirmation'];
+        $email                = $data['email'];
 
         if ($password !== $passwordConfirmation) {
           $response = array(
@@ -159,7 +163,7 @@ class AuthentificationController extends Controller
           'success' => true,
           'data' => array(
             'ressource' => $currentUser,
-            'flash_message' => Helpers::createFlashMessage('Ressource created', 'success', 1000)
+            'flash_message' => Helpers::createFlashMessage('Ressource created', 'success', 1010)
           ),
           'status_code'=> Response::HTTP_CREATED
         );
@@ -168,7 +172,7 @@ class AuthentificationController extends Controller
         $response = array(
           'success' => false,
           'data' => array(
-            'flash_message' => Helpers::createFlashMessage('Ressource not found', 'error', 1004)
+            'flash_message' => Helpers::createFlashMessage($e->getMessage(), 'error', 1004)
           ),
           'status_code'=> Response::HTTP_NOT_FOUND,
           'errors' => [
