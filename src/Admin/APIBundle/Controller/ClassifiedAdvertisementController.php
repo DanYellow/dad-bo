@@ -178,17 +178,20 @@ class ClassifiedAdvertisementController extends BaseAPI
 
     if ($classifiedAdvertisement) {
       try {
-        $category    = $this->getRequest()->get('category');
-
         $data = json_decode($request->getContent(), true);
-        
+        $category    = $data['category'];
+
         $classifiedAdvertisement->setTitle($data['title']);
         $classifiedAdvertisement->setDescription($data['description']);
         $classifiedAdvertisement->setPrice($data['price']);
         $classifiedAdvertisement->setLastUpdate(new \DateTime());
 
-        $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('name' => $category));
+        $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('id' => $category));
+
+        // $foo = array("truc" => $categoryEntity, 'id' => $category)
+        // return new Response();
         if ($categoryEntity) {
+
           $classifiedAdvertisement->setCategory($categoryEntity);
         }
 
@@ -297,7 +300,7 @@ class ClassifiedAdvertisementController extends BaseAPI
       );
     }
 
-    return new JSONResponse($response);
+    return new JSONResponse($response, $response['status_code']);
   }
 
 
@@ -325,6 +328,7 @@ class ClassifiedAdvertisementController extends BaseAPI
    */
   public function createClassifiedAdvertisement(Request $request)
   {
+    $response = array();
     $token = $request->headers->get('X-TOKEN');
     $userFromToken = $this->isUserTokenValid($token);
     if (!$userFromToken) {
@@ -351,24 +355,28 @@ class ClassifiedAdvertisementController extends BaseAPI
     } else {
       $data = json_decode($request->getContent(), true);
 
-      $title       = $data['title'];
-      $description = $data['description'];
-      $price       = $data['price'];
-      $category    = $data['category'];
-
       $classifiedAdvertisement = new ClassifiedAdvertisement();
-
       $form = $this->get('form.factory')->create(new ClassifiedAdvertisementType, $classifiedAdvertisement);
+      $form->submit($data);
 
-      if (!$form->handleRequest($request)->isValid()) {
+
+      if (!$form->isValid()) {
         $response = array(
           'success' => false,
           'data' => array(
-            'flash_message' => Helpers::createFlashMessage('Missing arguments', 'error', 1000)
+            'flash_message' => Helpers::createFlashMessage('Form invalid', 'error', 1000)
           ),
-          'status_code'=> Response::HTTP_BAD_REQUEST
+          'status_code'=> Response::HTTP_BAD_REQUEST,
+          'errors' => [
+            array('name' => (string) $form->getErrors(true, false))
+          ]
         );
       } else {
+        $title       = $data['title'];
+        $description = $data['description'];
+        $price       = $data['price'];
+        $category    = $data['category'];
+
         $classifiedAdvertisement->setTitle($title);
         $classifiedAdvertisement->setSeller($seller);
         $classifiedAdvertisement->setDescription($description);
@@ -398,6 +406,6 @@ class ClassifiedAdvertisementController extends BaseAPI
       }
     }
 
-    return new JSONResponse($response);
+    return new JSONResponse($response, $response['status_code']);
   }
 }

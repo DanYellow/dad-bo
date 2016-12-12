@@ -129,7 +129,7 @@ class CategoryController extends BaseAPI
                ->findAll();
 
     $properCategories = array();
-    foreach ($categories as $category) {      
+    foreach ($categories as $category) {
       $properCategories[] = $category->getSerializableDatas();
     }
 

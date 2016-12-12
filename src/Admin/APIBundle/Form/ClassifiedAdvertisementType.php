@@ -19,15 +19,10 @@ class ClassifiedAdvertisementType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder->add('title', TextType::class)
-                ->add('description', TextareaType::class)
-                ->add('isActive')
-                ->add('price', MoneyType::class)
-                // ->add('createdAt')
+                ->add('description', TextType::class)
+                ->add('price', TextType::class)
+                ->add('category');
                 // ->add('image')
-                // ->add('lastUpdate')
-                ->add('slug')
-                ->add('category')
-                ->add('seller');
     }
     
     /**
@@ -36,7 +31,8 @@ class ClassifiedAdvertisementType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => 'Admin\APIBundle\Entity\ClassifiedAdvertisement'
+            'data_class' => 'Admin\APIBundle\Entity\ClassifiedAdvertisement',
+            'csrf_protection' => false,
         ));
     }
 

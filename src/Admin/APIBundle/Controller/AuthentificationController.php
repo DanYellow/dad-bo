@@ -73,7 +73,7 @@ class AuthentificationController extends Controller
         $response = array(
           'success' => false,
           'data' => array(
-            'flash_message' => Helpers::createFlashMessage('Password incorrect', 'error', 1004)
+            'flash_message' => Helpers::createFlashMessage('Password incorrect', 'error', 1006)
           ),
           'status_code' => Response::HTTP_UNAUTHORIZED,
           'errors' => null
