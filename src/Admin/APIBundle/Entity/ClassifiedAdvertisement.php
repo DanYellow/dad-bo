@@ -347,7 +347,7 @@ class ClassifiedAdvertisement
      * @param  Array $currentUser current user's serializables datas
      * @return Array              
      */
-    public function getSerializableDatas() {
+    public function getSerializableDatas($isMine = false) {
         $lastUpdate = null;
         if ($this->getLastUpdate()) {
           $lastUpdate = $this->getLastUpdate()->format('Y-m-d H:i:s');
@@ -366,7 +366,7 @@ class ClassifiedAdvertisement
             'created_at'  => $this->getCreatedAt()->format('Y-m-d H:i:s'),
             'last_update' => $lastUpdate,
             'category'    => $category,
-            'is_mine'     => false,
+            'is_mine'     => $isMine,
             'seller'      => $this->getSeller()->getSerializableDatas(),
         );
     }

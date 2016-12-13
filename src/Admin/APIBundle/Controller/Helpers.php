@@ -17,12 +17,9 @@ class Helpers
   public static function manageInvalidUserToken() {
     $response = array(
       'data' => array(
-        'flash_message' => Helpers::createFlashMessage('Invalid Token', 'error', 1004)
+        'flash_message' => Helpers::createFlashMessage('Invalid Token', 'error', 1005)
       ),
       'status_code'=> Response::HTTP_UNAUTHORIZED,
-      'errors' => [
-        array('name' => '')
-      ]
     );
     return ['container' => $response, 'error_code' => $response['status_code']];
   }

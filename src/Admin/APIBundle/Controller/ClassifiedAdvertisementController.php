@@ -181,17 +181,16 @@ class ClassifiedAdvertisementController extends BaseAPI
         $data = json_decode($request->getContent(), true);
         $category    = $data['category'];
 
-        $classifiedAdvertisement->setTitle($data['title']);
-        $classifiedAdvertisement->setDescription($data['description']);
-        $classifiedAdvertisement->setPrice($data['price']);
+
+
+        $classifiedAdvertisement->setTitle((isset($data['title'])) ? $data['title'] : null);
+        $classifiedAdvertisement->setDescription((isset($data['description'])) ? $data['description'] : null);
+        $classifiedAdvertisement->setPrice((isset($data['price'])) ? $data['price'] : null);
         $classifiedAdvertisement->setLastUpdate(new \DateTime());
 
         $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('id' => $category));
 
-        // $foo = array("truc" => $categoryEntity, 'id' => $category)
-        // return new Response();
         if ($categoryEntity) {
-
           $classifiedAdvertisement->setCategory($categoryEntity);
         }
 
@@ -201,7 +200,7 @@ class ClassifiedAdvertisementController extends BaseAPI
         $response = array(
           'success' => true,
           'data' => array(
-            'resource' => $classifiedAdvertisement->getSerializableDatas($seller->getSerializableDatas()),
+            'resource' => $classifiedAdvertisement->getSerializableDatas(true),
             'flash_message' => Helpers::createFlashMessage('resource updated', 'success', 1001)
           ),
           'status_code'=> Response::HTTP_CREATED
@@ -372,10 +371,12 @@ class ClassifiedAdvertisementController extends BaseAPI
           ]
         );
       } else {
-        $title       = $data['title'];
-        $description = $data['description'];
-        $price       = $data['price'];
-        $category    = $data['category'];
+        $title       = (isset($data['title'])) ? $data['title'] : null;
+        $description = (isset($data['description'])) ? $data['description'] : null;
+        $price       = (isset($data['price'])) ? $data['price'] : null;
+        $category    = (isset($data['category'])) ? $data['category'] : null;
+
+        // $category    = (isset($data['category'])) ? $data['category'] : null;
 
         $classifiedAdvertisement->setTitle($title);
         $classifiedAdvertisement->setSeller($seller);

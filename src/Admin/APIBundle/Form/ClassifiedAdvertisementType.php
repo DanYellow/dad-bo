@@ -10,6 +10,7 @@ use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 
 class ClassifiedAdvertisementType extends AbstractType
 {
@@ -21,8 +22,8 @@ class ClassifiedAdvertisementType extends AbstractType
         $builder->add('title', TextType::class)
                 ->add('description', TextType::class)
                 ->add('price', TextType::class)
-                ->add('category');
-                // ->add('image')
+                ->add('category')
+                ->add('image', FileType::class);
     }
     
     /**
