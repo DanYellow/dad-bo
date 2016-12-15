@@ -21,9 +21,9 @@ class ClassifiedAdvertisementType extends AbstractType
     {
         $builder->add('title', TextType::class)
                 ->add('description', TextType::class)
-                ->add('price', TextType::class)
+                ->add('price', MoneyType::class)
                 ->add('category')
-                ->add('image', FileType::class);
+                ->add('file', FileType::class);
     }
     
     /**

@@ -27,7 +27,8 @@
         "friendsofsymfony/user-bundle": "~2.0@dev",
         "symfony/serializer": "3.1.0",
         "cocur/slugify": "^2.3",
-        "nelmio/cors-bundle": "^1.4"
+        "nelmio/cors-bundle": "^1.4",
+        "liip/imagine-bundle": "^1.6"
     },
     "require-dev": {
         "sensio/generator-bundle": "~3.0",

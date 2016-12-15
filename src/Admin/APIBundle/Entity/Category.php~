@@ -11,6 +11,7 @@ use Admin\APIBundle\Entity\ClassifiedAdvertisement as ClassifiedAdvertisement;
  *
  * @ORM\Table(name="category")
  * @ORM\Entity(repositoryClass="Admin\APIBundle\Repository\CategoryRepository")
+ * @ORM\HasLifecycleCallbacks
  */
 class Category
 {
@@ -33,7 +34,7 @@ class Category
     /**
      * @var string
      *
-     * @ORM\Column(name="slugName", type="string", length=50, unique=true)
+     * @ORM\Column(name="slug_name", type="string", length=50, unique=true)
      */
     private $slugName;
 
@@ -99,5 +100,67 @@ class Category
     public function getSlugName()
     {
         return $this->slugName;
+    }
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->classifiedAdvertisements = new \Doctrine\Common\Collections\ArrayCollection();
+    }
+
+    /**
+     * Add classifiedAdvertisements
+     *
+     * @param \Admin\APIBundle\Entity\ClassifiedAdvertisement $classifiedAdvertisements
+     * @return Category
+     */
+    public function addClassifiedAdvertisement(\Admin\APIBundle\Entity\ClassifiedAdvertisement $classifiedAdvertisements)
+    {
+        $this->classifiedAdvertisements[] = $classifiedAdvertisements;
+
+        return $this;
+    }
+
+    /**
+     * Remove classifiedAdvertisements
+     *
+     * @param \Admin\APIBundle\Entity\ClassifiedAdvertisement $classifiedAdvertisements
+     */
+    public function removeClassifiedAdvertisement(\Admin\APIBundle\Entity\ClassifiedAdvertisement $classifiedAdvertisements)
+    {
+        $this->classifiedAdvertisements->removeElement($classifiedAdvertisements);
+    }
+
+    /**
+     * Get classifiedAdvertisements
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getClassifiedAdvertisements($areActive = false)
+    {
+        if (!$areActive) {
+            return $this->classifiedAdvertisements;
+        } else {
+            $func = function($classifiedAdvertisement) {
+                return $classifiedAdvertisement->getIsActive();
+            };
+
+            return array_map($func, $this->getClassifiedAdvertisements()->toArray());
+        }
+    }
+
+
+    /**
+     * Return all serializables datas to avoid circular references
+     * @return Array              
+     */
+    public function getSerializableDatas() {
+        return array(
+            'id'        => $this->getId(),
+            'name'      => $this->getName(),
+            'slug_name' => $this->getSlugName(),
+            'nb_items'  => count($this->getClassifiedAdvertisements(true)),
+        );
     }
 }

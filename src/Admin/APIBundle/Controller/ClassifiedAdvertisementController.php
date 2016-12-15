@@ -110,14 +110,18 @@ class ClassifiedAdvertisementController extends BaseAPI
       }
 
       $isMine = ($classifiedAdvertisement->getSeller() === $currentUser) ? true : false;
-      $classifiedAdvertisement = $classifiedAdvertisement->getSerializableDatas();
-      $classifiedAdvertisement['is_mine'] = $isMine;
+      $classifiedAdvertisementObject = $classifiedAdvertisement->getSerializableDatas();
+      $classifiedAdvertisementObject['is_mine'] = $isMine;
+
+      $path = $classifiedAdvertisement->getWebPath();
+      $imagePath = $this->get('liip_imagine.cache.manager')->getBrowserPath($path, 'classified_advertisement_details');
+      $classifiedAdvertisementObject['image'] = $imagePath;
 
       $response = array(
         'success' => true,
         'status_code' => Response::HTTP_OK,
         'data' => array(
-          'resource' => $classifiedAdvertisement,
+          'resource' => $classifiedAdvertisementObject,
         ),
         'errors' => null
       );
@@ -358,8 +362,18 @@ class ClassifiedAdvertisementController extends BaseAPI
       $form = $this->get('form.factory')->create(new ClassifiedAdvertisementType, $classifiedAdvertisement);
       $form->submit($data);
 
+      // return new JSONResponse($form->all());
+      // http://stackoverflow.com/questions/34906128/symfony2-uploads-a-file-using-ajax-and-jquery
+      // echo json_encode($form->all(), true);
+      // echo $data;
+      // return new Response((string)$form->isValid());
+
+      // return new Response($request->request->get('image') );
+      // return new Response(json_encode($request->files->all()) );
+      // return new JSONResponse($request->request->all() );
 
       if (!$form->isValid()) {
+
         $response = array(
           'success' => false,
           'data' => array(
@@ -371,10 +385,10 @@ class ClassifiedAdvertisementController extends BaseAPI
           ]
         );
       } else {
-        $title       = (isset($data['title'])) ? $data['title'] : null;
-        $description = (isset($data['description'])) ? $data['description'] : null;
-        $price       = (isset($data['price'])) ? $data['price'] : null;
-        $category    = (isset($data['category'])) ? $data['category'] : null;
+        $title       = $request->request->get('title');
+        $description = $request->request->get('description');
+        $price       = $request->request->get('price');
+        $category    = $request->request->get('category');
 
         // $category    = (isset($data['category'])) ? $data['category'] : null;
 
@@ -382,6 +396,10 @@ class ClassifiedAdvertisementController extends BaseAPI
         $classifiedAdvertisement->setSeller($seller);
         $classifiedAdvertisement->setDescription($description);
         $classifiedAdvertisement->setPrice($price);
+        $classifiedAdvertisement->setFile($request->files->get('image'), array(), true);
+        $classifiedAdvertisement->upload();
+
+        // echo var_dump($classifiedAdvertisement);
 
         $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('name' => $category));
         if ($categoryEntity) {
