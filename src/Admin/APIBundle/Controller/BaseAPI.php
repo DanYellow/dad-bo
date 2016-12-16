@@ -87,11 +87,19 @@ class BaseAPI extends Controller
       $classifiedAdvertisementSeller = $classifiedAdvertisement->getSeller();
       $isMine = ($classifiedAdvertisementSeller === $currentUser) ? true : false;
 
-      $classifiedAdvertisement = $classifiedAdvertisement->getSerializableDatas($classifiedAdvertisementSeller->getSerializableDatas());
-      $classifiedAdvertisement['is_mine'] = $isMine;
-      $properClassifiedAdvertisements[] = $classifiedAdvertisement;
+      $classifiedAdvertisementObject = $classifiedAdvertisement->getSerializableDatas($classifiedAdvertisementSeller->getSerializableDatas());
+      $classifiedAdvertisementObject['is_mine'] = $isMine;
+      
+      $path = $classifiedAdvertisement->getWebPath();
+      if ($path) {
+        $imagePath = $this->get('liip_imagine.cache.manager')->getBrowserPath($path, 'classified_advertisement_details');
+        $classifiedAdvertisementObject['image'] = $imagePath;
+      } else {
+        $classifiedAdvertisementObject['image'] = null;
+      }
 
-    }
+      $properClassifiedAdvertisements[] = $classifiedAdvertisementObject;
+    } 
 
     $response = array(
                   'status_code' => Response::HTTP_OK,

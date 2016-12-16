@@ -339,11 +339,12 @@ class ClassifiedAdvertisement
      */
     public function preUpload()
     {
-        if (null !== $this->getFile()) {
-            // do whatever you want to generate a unique name
-            $filename = $this->getFile()->getClientOriginalName() . '-' . sha1(uniqid(mt_rand(), true));
-            $this->path = $filename.'.'.$this->getFile()->guessExtension();
-        }
+        // if (null !== $this->getFile()) {
+        //     // do whatever you want to generate a unique name
+        //     $filename = $this->getFile()->getClientOriginalName() . '-' . sha1(uniqid(mt_rand(), true));
+        //     $this->path = $filename.'.'.$this->getFile()->guessExtension();
+        // }
+        $this->setLastUpdate(new \DateTime());
     }
 
     /**

@@ -25,6 +25,24 @@ use Doctrine\ORM\Tools\Pagination\Paginator;
 
 class ClassifiedAdvertisementController extends BaseAPI
 {
+
+  /**
+   * Returns imagePath
+   * @param  ClassifiedAdvertisement $classifiedAdvertisement [description]
+   * @return [type]                                           [description]
+   */
+  private function retriveImagePath(ClassifiedAdvertisement $classifiedAdvertisement) {
+    $path = $classifiedAdvertisement->getWebPath();
+    if ($path) {
+      $imagePath = $this->get('liip_imagine.cache.manager')->getBrowserPath($path, 'classified_advertisement_details');
+      return $imagePath;
+    } else {
+      return null;
+    }
+  }
+
+
+
   /**
    * 
    * @Route("/classified_advertisements/{p}", defaults={"p": 1, "q": null, "c": null})
@@ -112,10 +130,7 @@ class ClassifiedAdvertisementController extends BaseAPI
       $isMine = ($classifiedAdvertisement->getSeller() === $currentUser) ? true : false;
       $classifiedAdvertisementObject = $classifiedAdvertisement->getSerializableDatas();
       $classifiedAdvertisementObject['is_mine'] = $isMine;
-
-      $path = $classifiedAdvertisement->getWebPath();
-      $imagePath = $this->get('liip_imagine.cache.manager')->getBrowserPath($path, 'classified_advertisement_details');
-      $classifiedAdvertisementObject['image'] = $imagePath;
+      $classifiedAdvertisementObject['image'] = $this->retriveImagePath($classifiedAdvertisement);
 
       $response = array(
         'success' => true,
@@ -172,62 +187,63 @@ class ClassifiedAdvertisementController extends BaseAPI
     $seller = $em->getRepository('AdminAPIBundle:User')
                ->findOneBy(array('username' => $userFromToken['username']));
 
-    $id = (int)$this->getRequest()->get('id');
+    $data = json_decode($request->getContent(), true);
+    $id = (int)$request->request->get('id');
 
-    $classifiedAdvertisement = $em->getRepository('AdminAPIBundle:ClassifiedAdvertisement')
+    $classifiedAdvertisement = new ClassifiedAdvertisement();
+
+    $form = $this->get('form.factory')->create(new ClassifiedAdvertisementType, $classifiedAdvertisement);
+    $form->submit($data);
+
+
+    if ($form->isValid()) {
+      $classifiedAdvertisement = $em->getRepository('AdminAPIBundle:ClassifiedAdvertisement')
                                   ->findOneBy(array(
                                       'seller' => $seller,
                                       'id' => $id,
                                     ));
+      $category    = $request->request->get('category');
+      $title       = $request->request->get('title');
+      $description = $request->request->get('description');
+      $price       = $request->request->get('price');
 
-    if ($classifiedAdvertisement) {
-      try {
-        $data = json_decode($request->getContent(), true);
-        $category    = $data['category'];
+      $classifiedAdvertisement->setTitle($title);
+      $classifiedAdvertisement->setDescription($description);
+      $classifiedAdvertisement->setPrice($price);
 
 
+      $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('id' => $category));
 
-        $classifiedAdvertisement->setTitle((isset($data['title'])) ? $data['title'] : null);
-        $classifiedAdvertisement->setDescription((isset($data['description'])) ? $data['description'] : null);
-        $classifiedAdvertisement->setPrice((isset($data['price'])) ? $data['price'] : null);
-        $classifiedAdvertisement->setLastUpdate(new \DateTime());
+      $classifiedAdvertisement->setFile($request->files->get('image'), array(), true);
+      $classifiedAdvertisement->upload();
 
-        $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('id' => $category));
-
-        if ($categoryEntity) {
-          $classifiedAdvertisement->setCategory($categoryEntity);
-        }
-
-        $em->persist($classifiedAdvertisement);
-        $em->flush();
-
-        $response = array(
-          'success' => true,
-          'data' => array(
-            'resource' => $classifiedAdvertisement->getSerializableDatas(true),
-            'flash_message' => Helpers::createFlashMessage('resource updated', 'success', 1001)
-          ),
-          'status_code'=> Response::HTTP_CREATED
-        );
-      } catch (\Exception $e) {
-        $response = array(
-          'success' => false,
-          'data' => array(
-            'flash_message' => Helpers::createFlashMessage('Missing required parameters', 'error', 1004)
-          ),
-          'status_code'=> Response::HTTP_UNPROCESSABLE_ENTITY,
-          'errors' => [
-            array('name' => $e->getMessage())
-          ]
-        );
+      if ($categoryEntity) {
+        $classifiedAdvertisement->setCategory($categoryEntity);
       }
+
+      $em->persist($classifiedAdvertisement);
+      $em->flush();
+
+      $classifiedAdvertisementObject = $classifiedAdvertisement->getSerializableDatas(true);
+      $classifiedAdvertisementObject['image'] = $this->retriveImagePath($classifiedAdvertisement);
+
+      $response = array(
+        'success' => true,
+        'data' => array(
+          'resource' => $classifiedAdvertisement->getSerializableDatas(true),
+          'flash_message' => Helpers::createFlashMessage('resource updated', 'success', 1001)
+        ),
+        'status_code'=> Response::HTTP_CREATED
+      );
     } else {
       $response = array(
         'success' => false,
         'data' => array(
           'flash_message' => Helpers::createFlashMessage('resource not found', 'error', 1004)
         ),
-        'status_code'=> Response::HTTP_NOT_FOUND
+        'status_code' => Response::HTTP_NOT_FOUND,
+        'errors' => $form->getErrors(true, false)
+        // 'errors' => $form->getErrorsAsString()
       );
     }
 
@@ -357,20 +373,10 @@ class ClassifiedAdvertisementController extends BaseAPI
       );
     } else {
       $data = json_decode($request->getContent(), true);
-
+      
       $classifiedAdvertisement = new ClassifiedAdvertisement();
       $form = $this->get('form.factory')->create(new ClassifiedAdvertisementType, $classifiedAdvertisement);
       $form->submit($data);
-
-      // return new JSONResponse($form->all());
-      // http://stackoverflow.com/questions/34906128/symfony2-uploads-a-file-using-ajax-and-jquery
-      // echo json_encode($form->all(), true);
-      // echo $data;
-      // return new Response((string)$form->isValid());
-
-      // return new Response($request->request->get('image') );
-      // return new Response(json_encode($request->files->all()) );
-      // return new JSONResponse($request->request->all() );
 
       if (!$form->isValid()) {
 
@@ -389,8 +395,6 @@ class ClassifiedAdvertisementController extends BaseAPI
         $description = $request->request->get('description');
         $price       = $request->request->get('price');
         $category    = $request->request->get('category');
-
-        // $category    = (isset($data['category'])) ? $data['category'] : null;
 
         $classifiedAdvertisement->setTitle($title);
         $classifiedAdvertisement->setSeller($seller);

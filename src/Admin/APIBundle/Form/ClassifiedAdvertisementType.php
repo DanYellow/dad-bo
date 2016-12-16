@@ -34,6 +34,7 @@ class ClassifiedAdvertisementType extends AbstractType
         $resolver->setDefaults(array(
             'data_class' => 'Admin\APIBundle\Entity\ClassifiedAdvertisement',
             'csrf_protection' => false,
+            'allow_extra_fields' => true
         ));
     }
 
