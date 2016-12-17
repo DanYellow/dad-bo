@@ -217,6 +217,18 @@ class ClassifiedAdvertisementController extends BaseAPI
       $classifiedAdvertisement->setFile($request->files->get('image'), array(), true);
       $classifiedAdvertisement->upload();
 
+      if (!is_null($request->files->get('image'))) {
+        $classifiedAdvertisement->setFile($request->files->get('image'), array(), true);
+        $classifiedAdvertisement->upload();
+      } else {
+
+        echo $classifiedAdvertisement->getAbsolutePath();
+        $classifiedAdvertisement->removeUpload();
+      }
+
+      
+
+
       if ($categoryEntity) {
         $classifiedAdvertisement->setCategory($categoryEntity);
       }
@@ -303,7 +315,7 @@ class ClassifiedAdvertisementController extends BaseAPI
       $response = array(
         'success' => true,
         'data' => array(
-          'flash_message' => Helpers::createFlashMessage('Element removed', 'success', 1000)
+          'flash_message' => Helpers::createFlashMessage('Element removed', 'success', 1002)
         ),
         'status_code'=> Response::HTTP_CREATED,
         'errors' => null
@@ -402,8 +414,6 @@ class ClassifiedAdvertisementController extends BaseAPI
         $classifiedAdvertisement->setPrice($price);
         $classifiedAdvertisement->setFile($request->files->get('image'), array(), true);
         $classifiedAdvertisement->upload();
-
-        // echo var_dump($classifiedAdvertisement);
 
         $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('name' => $category));
         if ($categoryEntity) {

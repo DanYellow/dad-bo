@@ -339,11 +339,6 @@ class ClassifiedAdvertisement
      */
     public function preUpload()
     {
-        // if (null !== $this->getFile()) {
-        //     // do whatever you want to generate a unique name
-        //     $filename = $this->getFile()->getClientOriginalName() . '-' . sha1(uniqid(mt_rand(), true));
-        //     $this->path = $filename.'.'.$this->getFile()->guessExtension();
-        // }
         $this->setLastUpdate(new \DateTime());
     }
 
@@ -447,7 +442,7 @@ class ClassifiedAdvertisement
         // $filename = pathinfo($this->getFile()->getClientOriginalName(), PATHINFO_FILENAME);
         $filename = $this->getImageId();
 
-        $finalFileName = $filename . '-' . rand(0, 10000) . '.' . $this->getFile()->guessExtension();
+        $finalFileName = $filename . '.' . $this->getFile()->guessExtension();
 
         // move takes the target directory and then the
         // target filename to move to
@@ -461,6 +456,17 @@ class ClassifiedAdvertisement
   
         // clean up the file property as you won't need it anymore
         $this->file = null;
+    }
+
+    /**
+     * @ORM\PostRemove()
+     */
+    public function removeUpload()
+    {
+        $file = $this->getAbsolutePath();
+        if ($file) {
+            unlink($file);
+        }
     }
 
     /**
