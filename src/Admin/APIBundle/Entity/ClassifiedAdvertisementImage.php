@@ -161,7 +161,7 @@ class ClassifiedAdvertisementImage
     {
         // get rid of the __DIR__ so it doesn't screw up
         // when displaying uploaded doc/image in the view.
-        return 'uploads/gallery';
+        return 'uploads';
     }
 
     public function upload()
@@ -177,11 +177,7 @@ class ClassifiedAdvertisementImage
         $finalFileName = null;
         $filename = null;
 
-        if (null === $this->name) { 
-            $this->name = $filename = pathinfo($this->getFile()->getClientOriginalName(), PATHINFO_FILENAME);   
-        } else {
-            $filename = $this->name;
-        }
+        $filename = $this->name;
 
         $finalFileName = $filename . '.' . $this->getFile()->guessExtension();
 
@@ -208,7 +204,7 @@ class ClassifiedAdvertisementImage
     {
         if (null !== $this->getFile()) {
             // do whatever you want to generate a unique name
-            $filename = $this->getFile()->getClientOriginalName() . '-' . sha1(uniqid(mt_rand(), true));
+            $filename = $this->name;
             $this->path = $filename.'.'.$this->getFile()->guessExtension();
         }
     }

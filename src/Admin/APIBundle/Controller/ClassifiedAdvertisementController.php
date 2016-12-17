@@ -200,15 +200,17 @@ class ClassifiedAdvertisementController extends BaseAPI
       $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('id' => $category));
 
 
-      // if (!is_null($request->files->get('image'))) {
-      //   $classifiedAdvertisement->setFile($request->files->get('image'), array(), true);
-      //   $classifiedAdvertisement->upload();
-      // } else {
-      //   $classifiedAdvertisement->removeUpload();
-      // }
-
-      
-
+      if (is_null($request->files->get('image')) && $classifiedAdvertisement->getImage()) {
+        $image = $classifiedAdvertisement->getImage();
+        $classifiedAdvertisement->setImage(null);
+        $em->remove($image);
+      } else {
+        $image = $classifiedAdvertisement->getImage();
+        $image->setFile($request->files->get('image'), array(), true);
+        $image->upload();
+        $em->persist($image);
+        $em->flush();
+      }
 
       if ($categoryEntity) {
         $classifiedAdvertisement->setCategory($categoryEntity);
@@ -271,7 +273,7 @@ class ClassifiedAdvertisementController extends BaseAPI
     $userFromToken = $this->isUserTokenValid($token);
     if (!$userFromToken) {
       return new JSONResponse(
-                   Helpers::manageInvalidUserToken()['container'], 
+                   Helpers::manageInvalidUserToken()['container'],
                    Helpers::manageInvalidUserToken()['error_code']
                  );
     }
@@ -288,10 +290,21 @@ class ClassifiedAdvertisementController extends BaseAPI
                                       'seller' => $user,
                                       'id' => $id,
                                     ));
+    try {
+      $classifiedAdvertisementImage = $classifiedAdvertisement->getImage();
+      $classifiedAdvertisement->setImage(null);
 
-    if ($classifiedAdvertisement) {
+      $em->persist($classifiedAdvertisement);
+      $em->flush();
+
+      if ($classifiedAdvertisementImage) {
+        $em->remove($classifiedAdvertisementImage);
+        $em->flush();
+      }
+
       $em->remove($classifiedAdvertisement);
       $em->flush();
+
 
       $response = array(
         'success' => true,
@@ -301,11 +314,11 @@ class ClassifiedAdvertisementController extends BaseAPI
         'status_code'=> Response::HTTP_CREATED,
         'errors' => null
       );
-    } else {
+    } catch (Exception $e) {
       $response = array(
         'success' => false,
         'data' => array(
-          'flash_message' => Helpers::createFlashMessage('resource not found', 'error', 1004)
+          'flash_message' => Helpers::createFlashMessage('Resource not found', 'error', 1004)
         ),
         'status_code' => Response::HTTP_NOT_FOUND,
         'errors' => null

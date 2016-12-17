@@ -107,7 +107,7 @@ class ClassifiedAdvertisement
         $this->createdAt   = new \DateTime();
         $this->lastUpdate  = new \DateTime();
         $this->isActive    = true;
-        $this->description = "";
+        $this->description = '';
         $this->slug        = null;
         $this->price       = 0;
     }

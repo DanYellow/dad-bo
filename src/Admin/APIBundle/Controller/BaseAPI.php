@@ -26,13 +26,13 @@ class BaseAPI extends Controller
    * @param  ClassifiedAdvertisement $classifiedAdvertisement [description]
    * @return [type]                                           [description]
    */
-  private function retriveImagePath(ClassifiedAdvertisement $classifiedAdvertisement) {
+  protected function retriveImagePath(ClassifiedAdvertisement $classifiedAdvertisement) {
     $image = $classifiedAdvertisement->getImage();
-    $path = $image->getWebPath();
-
-    if ($path) {
+    
+    if ($image) {
+      $path = $image->getWebPath();
       $imagePath = $this->get('liip_imagine.cache.manager')
-                        ->getBrowserPath($path, 'classified_advertisement_details');
+                        ->getBrowserPath($path, 'classified_advertisement_thumbnail');
       return $imagePath;
     } else {
       return null;
