@@ -22,6 +22,24 @@ class BaseAPI extends Controller
 {
 
   /**
+   * Returns imagePath
+   * @param  ClassifiedAdvertisement $classifiedAdvertisement [description]
+   * @return [type]                                           [description]
+   */
+  private function retriveImagePath(ClassifiedAdvertisement $classifiedAdvertisement) {
+    $image = $classifiedAdvertisement->getImage();
+    $path = $image->getWebPath();
+
+    if ($path) {
+      $imagePath = $this->get('liip_imagine.cache.manager')
+                        ->getBrowserPath($path, 'classified_advertisement_details');
+      return $imagePath;
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * Retrieve ClassifiedAdvertisements
    * @param  Request $request        HTTP Request performed
    * @param  \Admin\APIBundle\Entity\User  $currentUser    Current user | Defaults = null
@@ -89,15 +107,8 @@ class BaseAPI extends Controller
 
       $classifiedAdvertisementObject = $classifiedAdvertisement->getSerializableDatas($classifiedAdvertisementSeller->getSerializableDatas());
       $classifiedAdvertisementObject['is_mine'] = $isMine;
+      $classifiedAdvertisementObject['image'] = $this->retriveImagePath($classifiedAdvertisement);
       
-      $path = $classifiedAdvertisement->getWebPath();
-      if ($path) {
-        $imagePath = $this->get('liip_imagine.cache.manager')->getBrowserPath($path, 'classified_advertisement_details');
-        $classifiedAdvertisementObject['image'] = $imagePath;
-      } else {
-        $classifiedAdvertisementObject['image'] = null;
-      }
-
       $properClassifiedAdvertisements[] = $classifiedAdvertisementObject;
     } 
 

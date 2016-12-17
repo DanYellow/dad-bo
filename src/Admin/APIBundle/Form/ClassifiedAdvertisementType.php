@@ -23,7 +23,7 @@ class ClassifiedAdvertisementType extends AbstractType
                 ->add('description', TextType::class)
                 ->add('price', MoneyType::class)
                 ->add('category')
-                ->add('file', FileType::class);
+                ->add('image', FileType::class);
     }
     
     /**

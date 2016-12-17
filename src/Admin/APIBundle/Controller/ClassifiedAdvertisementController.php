@@ -12,6 +12,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 use Admin\APIBundle\Entity\ClassifiedAdvertisement as ClassifiedAdvertisement;
+use Admin\APIBundle\Entity\ClassifiedAdvertisementImage as ClassifiedAdvertisementImage;
+
 use Admin\APIBundle\Controller\Helpers as Helpers;
 use Admin\APIBundle\Controller\BaseAPI as BaseAPI;
 
@@ -25,23 +27,6 @@ use Doctrine\ORM\Tools\Pagination\Paginator;
 
 class ClassifiedAdvertisementController extends BaseAPI
 {
-
-  /**
-   * Returns imagePath
-   * @param  ClassifiedAdvertisement $classifiedAdvertisement [description]
-   * @return [type]                                           [description]
-   */
-  private function retriveImagePath(ClassifiedAdvertisement $classifiedAdvertisement) {
-    $path = $classifiedAdvertisement->getWebPath();
-    if ($path) {
-      $imagePath = $this->get('liip_imagine.cache.manager')->getBrowserPath($path, 'classified_advertisement_details');
-      return $imagePath;
-    } else {
-      return null;
-    }
-  }
-
-
 
   /**
    * 
@@ -74,7 +59,7 @@ class ClassifiedAdvertisementController extends BaseAPI
     if ($userFromToken) {
       $em = $this->getDoctrine()->getManager();
       $currentUser = $em->getRepository('AdminAPIBundle:User')
-                 ->findOneBy(array('username' => $userFromToken['username']));
+                        ->findOneBy(array('username' => $userFromToken['username']));
     }
 
     $response = $this->retrieveClassifiedAdvertisements($request, $currentUser);
@@ -214,17 +199,13 @@ class ClassifiedAdvertisementController extends BaseAPI
 
       $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('id' => $category));
 
-      $classifiedAdvertisement->setFile($request->files->get('image'), array(), true);
-      $classifiedAdvertisement->upload();
 
-      if (!is_null($request->files->get('image'))) {
-        $classifiedAdvertisement->setFile($request->files->get('image'), array(), true);
-        $classifiedAdvertisement->upload();
-      } else {
-
-        echo $classifiedAdvertisement->getAbsolutePath();
-        $classifiedAdvertisement->removeUpload();
-      }
+      // if (!is_null($request->files->get('image'))) {
+      //   $classifiedAdvertisement->setFile($request->files->get('image'), array(), true);
+      //   $classifiedAdvertisement->upload();
+      // } else {
+      //   $classifiedAdvertisement->removeUpload();
+      // }
 
       
 
@@ -412,8 +393,16 @@ class ClassifiedAdvertisementController extends BaseAPI
         $classifiedAdvertisement->setSeller($seller);
         $classifiedAdvertisement->setDescription($description);
         $classifiedAdvertisement->setPrice($price);
-        $classifiedAdvertisement->setFile($request->files->get('image'), array(), true);
-        $classifiedAdvertisement->upload();
+
+        if (!is_null($request->files->get('image'))) {
+          $classifiedAdvertisementImage = new ClassifiedAdvertisementImage();
+          $classifiedAdvertisementImage->setFile($request->files->get('image'), array(), true);
+          $classifiedAdvertisementImage->upload();
+          $em->persist($classifiedAdvertisementImage);
+          $em->flush();
+
+          $classifiedAdvertisement->setImage($classifiedAdvertisementImage);
+        }
 
         $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('name' => $category));
         if ($categoryEntity) {
@@ -427,6 +416,9 @@ class ClassifiedAdvertisementController extends BaseAPI
         $em->flush();
 
         $currentUser = $seller->getSerializableDatas();
+
+        $classifiedAdvertisementObject = $classifiedAdvertisement->getSerializableDatas($currentUser);
+        $classifiedAdvertisementObject['image'] = $this->retriveImagePath($classifiedAdvertisement);
 
         $response = array(
           'success' => true,

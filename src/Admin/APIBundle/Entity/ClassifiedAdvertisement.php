@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 use Admin\APIBundle\Entity\User as User;
 use Admin\APIBundle\Entity\Category as Category;
+use Admin\APIBundle\Entity\ClassifiedAdvertisementImage as ClassifiedAdvertisementImage;
 
 
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -68,24 +69,6 @@ class ClassifiedAdvertisement
      */
     private $createdAt;
 
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="path", type="string", length=255, nullable=true)
-     * 
-     */
-    private $path;
-
-    /**
-     * 
-     * @Assert\Image(
-     *          mimeTypes = {"image/jpeg", "image/jpg", "image/png", "image/gif"},
-     *          mimeTypesMessage = "Ce format n'est pas autorisé. Seul les images au format .jp(e)g, .png et .gif sont autorisés",
-     *          maxSize = "6M", 
-     *          maxSizeMessage = "Ce fichier est trop lourd ({{ size }}). La taille maximum autorisée est de : {{ limit }}"
-     * )
-     */
-    private $file;
 
     /**
      * @var \DateTime
@@ -114,11 +97,10 @@ class ClassifiedAdvertisement
     private $seller;
 
     /**
-     * @var string
-     *
-     * @ORM\Column(name="image_id", type="string", length=255, nullable=true)
+     * 
+     * @ORM\OneToOne(targetEntity="ClassifiedAdvertisementImage", cascade={"remove"})
      */
-    private $imageId;
+    private $image;
 
     public function __construct()
     {
@@ -128,7 +110,6 @@ class ClassifiedAdvertisement
         $this->description = "";
         $this->slug        = null;
         $this->price       = 0;
-        $this->imageId       = uniqid();
     }
 
 
@@ -394,146 +375,26 @@ class ClassifiedAdvertisement
         return $this->category;
     }
 
-
-
-    // Upload management
-    public function getAbsolutePath()
-    {
-        return null === $this->path
-            ? null
-            : $this->getUploadRootDir().'/'.$this->path;
-    }
-
-    public function getWebPath()
-    {
-        return null === $this->path
-            ? null
-            : $this->getUploadDir().'/'.$this->path;
-    }
-
-    protected function getUploadRootDir()
-    {
-        // the absolute directory path where uploaded
-        // documents should be saved
-        return __DIR__.'/../../../../web/'.$this->getUploadDir();
-    }
-
-    protected function getUploadDir()
-    {
-        // get rid of the __DIR__ so it doesn't screw up
-        // when displaying uploaded doc/image in the view.
-        return 'uploads';
-    }
-
-
-    public function upload()
-    {
-        // the file property can be empty if the field is not required
-        if (null === $this->getFile()) {
-            return;
-        }
-
-        // use the original file name here but you should
-        // sanitize it at least to avoid any security issues
-
-        $finalFileName = null;
-        $filename = null;
-
-        // $filename = pathinfo($this->getFile()->getClientOriginalName(), PATHINFO_FILENAME);
-        $filename = $this->getImageId();
-
-        $finalFileName = $filename . '.' . $this->getFile()->guessExtension();
-
-        // move takes the target directory and then the
-        // target filename to move to
-        $this->getFile()->move(
-            $this->getUploadRootDir(),
-            $finalFileName
-        );
-
-        // set the path property to the filename where you've saved the file
-        $this->path = $finalFileName;
-  
-        // clean up the file property as you won't need it anymore
-        $this->file = null;
-    }
-
     /**
-     * @ORM\PostRemove()
-     */
-    public function removeUpload()
-    {
-        $file = $this->getAbsolutePath();
-        if ($file) {
-            unlink($file);
-        }
-    }
-
-    /**
-     * Set path
+     * Set image
      *
-     * @param string $path
+     * @param \Admin\APIBundle\Entity\ClassifiedAdvertisementImage $image
      * @return ClassifiedAdvertisement
      */
-    public function setPath($path)
+    public function setImage(\Admin\APIBundle\Entity\ClassifiedAdvertisementImage $image = null)
     {
-        $this->path = $path;
+        $this->image = $image;
 
         return $this;
     }
 
     /**
-     * Get path
+     * Get image
      *
-     * @return string 
+     * @return \Admin\APIBundle\Entity\ClassifiedAdvertisementImage 
      */
-    public function getPath()
+    public function getImage()
     {
-        return $this->path;
-    }
-
-    /**
-     * Sets file
-     *
-     * @param UploadedFile $file
-     */
-    public function setFile(UploadedFile $file = null)
-    {
-        $this->file = $file;
-
-        return $this;
-    }  
-
-    /**
-     * Get file
-     *
-     * @return UploadedFile
-     */
-    public function getFile()
-    {
-        return $this->file;
-    }
-
-    /**
-     * Set imageId
-     *
-     * @param string $imageId
-     * @return ClassifiedAdvertisement
-     */
-    public function setImageId($imageId)
-    {
-        $this->imageId = $imageId;
-
-        return $this;
-    }
-
-    /**
-     * Get imageId
-     *
-     * @return string 
-     */
-    public function getImageId()
-    {
-        return $this->imageId;
+        return $this->image;
     }
 }
