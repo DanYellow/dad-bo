@@ -43,3 +43,6 @@ ALTER TABLE tablename AUTO_INCREMENT = 1;
 http://127.0.0.1:8000/_console
 
 https://knpuniversity.com/screencast/symfony-rest4/create-json-web-token
+
+
+ SELECT image_id, title, id FROM classified_advertisement;

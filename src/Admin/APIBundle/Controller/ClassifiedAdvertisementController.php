@@ -27,7 +27,6 @@ use Doctrine\ORM\Tools\Pagination\Paginator;
 
 class ClassifiedAdvertisementController extends BaseAPI
 {
-
   /**
    * 
    * @Route("/classified_advertisements/{p}", defaults={"p": 1, "q": null, "c": null})
@@ -199,17 +198,25 @@ class ClassifiedAdvertisementController extends BaseAPI
 
       $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('id' => $category));
 
-
-      if (is_null($request->files->get('image')) && $classifiedAdvertisement->getImage()) {
-        $image = $classifiedAdvertisement->getImage();
-        $classifiedAdvertisement->setImage(null);
-        $em->remove($image);
-      } else {
-        $image = $classifiedAdvertisement->getImage();
-        $image->setFile($request->files->get('image'), array(), true);
-        $image->upload();
-        $em->persist($image);
-        $em->flush();
+      if ((boolean)$request->request->get('has_updated_image') === true) {
+        // User removes CA's image
+        if (is_null($request->files->get('image')) && $classifiedAdvertisement->getImage()) {
+          $image = $classifiedAdvertisement->getImage();
+          $classifiedAdvertisement->setImage(null);
+          $em->remove($image);
+          $em->flush();
+        // User replaces CA's image
+        } else if (!is_null($request->files->get('image'))) {
+          $image = $classifiedAdvertisement->getImage();
+          if (is_null($image)) {
+            $image = new ClassifiedAdvertisementImage();
+          }
+          $classifiedAdvertisement->setImage($image);
+          $image->setFile($request->files->get('image'), array(), true);
+          $image->upload();
+          $em->persist($image);
+          $em->flush();
+        }
       }
 
       if ($categoryEntity) {
@@ -225,7 +232,7 @@ class ClassifiedAdvertisementController extends BaseAPI
       $response = array(
         'success' => true,
         'data' => array(
-          'resource' => $classifiedAdvertisement->getSerializableDatas(true),
+          'resource' => $classifiedAdvertisementObject,
           'flash_message' => Helpers::createFlashMessage('resource updated', 'success', 1001)
         ),
         'status_code'=> Response::HTTP_CREATED

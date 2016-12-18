@@ -81,11 +81,12 @@ class AuthentificationController extends Controller
       } else {
         $token = $this->get('lexik_jwt_authentication.encoder')
                       ->encode(['username' => $user->getUsername()]);
-
+        $expireDate = time() + (60 * 60);
+        
         $response = array(
           'success' => true,
           'data' => array(
-            'resource' => array('token' => $token),
+            'resource' => array('token' => $token, 'expire' => $expireDate),
             'flash_message' => Helpers::createFlashMessage('Logged', 'success', 1011)
           ),
           'status_code' => Response::HTTP_ACCEPTED,

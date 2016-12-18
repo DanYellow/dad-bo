@@ -80,7 +80,6 @@ lexik_jwt_authentication:
     pass_phrase:  'dad_install42'
     token_ttl:        3600
 
-
 nelmio_cors:
    defaults:
        allow_credentials: true
@@ -99,7 +98,6 @@ liip_imagine:
     resolvers:
        default:
           web_path: ~
-
     filter_sets:
         cache: ~
         classified_advertisement_thumbnail:
