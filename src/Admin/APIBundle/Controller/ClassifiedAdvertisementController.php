@@ -29,10 +29,12 @@ use Doctrine\ORM\Query\ResultSetMapping;
 class ClassifiedAdvertisementController extends BaseAPI
 {
 
-  private function getClassifiedAdvertisementSiblings($id) {
+  private function getClassifiedAdvertisementSiblings($id, $user = null) {
     $em = $this->getDoctrine()->getManager();
     $rsm = new ResultSetMapping();
     $rsm->addScalarResult('id', 'id');
+
+    $selectSubQuery = 'SELECT id FROM classified_advertisement WHERE id > :id';
 
     $query = $em->createNativeQuery('SELECT id FROM classified_advertisement WHERE
       id = (SELECT id FROM classified_advertisement WHERE id > :id LIMIT 1)
@@ -475,7 +477,8 @@ class ClassifiedAdvertisementController extends BaseAPI
 
         $classifiedAdvertisementObject = $classifiedAdvertisement->getSerializableDatas($currentUser);
         $classifiedAdvertisementObject['image'] = $this->retriveImagePath($classifiedAdvertisement);
-
+        $id = $classifiedAdvertisement->getId();
+        
         $response = array(
           'success' => true,
           'data' => array(

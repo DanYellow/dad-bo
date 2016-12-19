@@ -346,6 +346,7 @@ class ClassifiedAdvertisement
             'price'       => (int)$this->getPrice(),
             'created_at'  => $this->getCreatedAt()->format('Y-m-d H:i:s'),
             'last_update' => $lastUpdate,
+            'is_active'   => $this->getIsActive(),
             'category'    => $category,
             'is_mine'     => $isMine,
             'seller'      => $this->getSeller()->getSerializableDatas(),
