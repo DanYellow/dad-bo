@@ -126,7 +126,7 @@ class CategoryController extends BaseAPI
   {
     $em = $this->getDoctrine()->getManager();
     $categories = $em->getRepository('AdminAPIBundle:Category')
-               ->findAll();
+                     ->findAll();
 
     $properCategories = array();
     foreach ($categories as $category) {

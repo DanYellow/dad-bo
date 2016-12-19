@@ -22,11 +22,36 @@ use Admin\APIBundle\Form\ClassifiedAdvertisementType;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 
 use Doctrine\ORM\Tools\Pagination\Paginator;
+use Doctrine\ORM\Query\ResultSetMapping;
 
 
 
 class ClassifiedAdvertisementController extends BaseAPI
 {
+
+  private function getClassifiedAdvertisementSiblings($id) {
+    $em = $this->getDoctrine()->getManager();
+    $rsm = new ResultSetMapping();
+    $rsm->addScalarResult('id', 'id');
+
+    $query = $em->createNativeQuery('SELECT id FROM classified_advertisement WHERE
+      id = (SELECT id FROM classified_advertisement WHERE id > :id LIMIT 1)
+      OR
+      id = (SELECT id FROM classified_advertisement WHERE id < :id ORDER BY id DESC LIMIT 1)', $rsm);
+    
+    $query->setParameter('id', $id);
+
+    $siblingsTemp = $query->getResult();
+
+    $siblings = array();
+    foreach ($siblingsTemp as $value) {
+      $key = ($value['id'] > $id) ? 'next' : 'prev';
+      $siblings[$key] = (int)$value['id'];
+    }
+
+    return $siblings;
+  }
+
   /**
    * 
    * @Route("/classified_advertisements/{p}", defaults={"p": 1, "q": null, "c": null})
@@ -116,13 +141,22 @@ class ClassifiedAdvertisementController extends BaseAPI
       $classifiedAdvertisementObject['is_mine'] = $isMine;
       $classifiedAdvertisementObject['image'] = $this->retriveImagePath($classifiedAdvertisement);
 
+      // 
+      
+      // $query = 'SELECT ca.id, 
+      //   (SELECT ca1.id FROM AdminAPIBundle:ClassifiedAdvertisement ca1 WHERE ca1.id > ca.id ORDER BY ca1.id ) as next,
+      //   (SELECT ca2.id FROM AdminAPIBundle:ClassifiedAdvertisement ca2 WHERE ca2.id < ca.id ORDER BY ca2.id ) as prev FROM AdminAPIBundle:ClassifiedAdvertisement ca WHERE ca.id = 6';
+      // $siblings = $em->createQuery($query)->getResult();
+
+
       $response = array(
         'success' => true,
         'status_code' => Response::HTTP_OK,
         'data' => array(
           'resource' => $classifiedAdvertisementObject,
         ),
-        'errors' => null
+        'errors' => null,
+        'siblings' => $this->getClassifiedAdvertisementSiblings($id)
       );
     }
 
@@ -198,7 +232,7 @@ class ClassifiedAdvertisementController extends BaseAPI
 
       $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('id' => $category));
 
-      if ((boolean)$request->request->get('has_updated_image') === true) {
+      if ($request->request->get('has_updated_image') === 'true') {
         // User removes CA's image
         if (is_null($request->files->get('image')) && $classifiedAdvertisement->getImage()) {
           $image = $classifiedAdvertisement->getImage();
@@ -235,7 +269,8 @@ class ClassifiedAdvertisementController extends BaseAPI
           'resource' => $classifiedAdvertisementObject,
           'flash_message' => Helpers::createFlashMessage('resource updated', 'success', 1001)
         ),
-        'status_code'=> Response::HTTP_CREATED
+        'status_code'=> Response::HTTP_CREATED,
+        'siblings' => $this->getClassifiedAdvertisementSiblings($id)
       );
     } else {
       $response = array(
@@ -244,7 +279,8 @@ class ClassifiedAdvertisementController extends BaseAPI
           'flash_message' => Helpers::createFlashMessage('resource not found', 'error', 1004)
         ),
         'status_code' => Response::HTTP_NOT_FOUND,
-        'errors' => $form->getErrors(true, false)
+        'errors' => $form->getErrors(true, false),
+       
         // 'errors' => $form->getErrorsAsString()
       );
     }
@@ -446,10 +482,60 @@ class ClassifiedAdvertisementController extends BaseAPI
             'resource' => $classifiedAdvertisement->getSerializableDatas($currentUser),
             'flash_message' => Helpers::createFlashMessage('resource created', 'success', 1000)
           ),
-          'status_code'=> Response::HTTP_CREATED
+          'status_code'=> Response::HTTP_CREATED,
+          'siblings' => $this->getClassifiedAdvertisementSiblings($id)
         );
       }
     }
+
+    return new JSONResponse($response, $response['status_code']);
+  }
+
+  /**
+   * 
+   * @Route("/classified_advertisement/activate/{id}", requirements={"_method" = "POST", "id" = "\+d" })
+   * @Method({"POST"})
+   *
+   * @ApiDoc(
+   *   description="Change classified advertisement's state",
+   *   resource=false,
+   *   section="Classified avertisements",
+   *   headers={
+   *     { "name"="X-TOKEN", "description"="User token", "required"=true }
+   *   },
+   *   requirements={
+   *     {"name"="id", "dataType"="Number", "required"=true, "description"="Classified advertisement id's"},
+   *   }
+   * )
+   */
+  public function changeStateClassifiedAdvertisement(Request $request)
+  {
+    $response = array();
+    
+    $token = $request->headers->get('X-TOKEN');
+    $userFromToken = $this->isUserTokenValid($token);
+    if (!$userFromToken) {
+      return new JSONResponse(
+                   Helpers::manageInvalidUserToken()['container'],
+                   Helpers::manageInvalidUserToken()['error_code']
+                 );
+    }
+
+    $em = $this->getDoctrine()->getManager();
+    
+    $user = $em->getRepository('AdminAPIBundle:User')
+               ->findOneBy(array('username' => $userFromToken['username']));
+
+    $id = (int)$this->getRequest()->get('id');
+    
+    $classifiedAdvertisement = $em->getRepository('AdminAPIBundle:ClassifiedAdvertisement')
+                                  ->findOneBy(array(
+                                      'seller' => $user,
+                                      'id' => $id,
+                                    ));
+    $classifiedAdvertisement->setIsActive( !$classifiedAdvertisement->getIsActive());
+    $em->persist($classifiedAdvertisement);
+    $em->flush();
 
     return new JSONResponse($response, $response['status_code']);
   }
