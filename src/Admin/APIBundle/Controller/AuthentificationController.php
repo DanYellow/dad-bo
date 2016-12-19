@@ -20,14 +20,7 @@ use Admin\APIBundle\Entity\User;
 
 class AuthentificationController extends Controller
 {
-    
     /**
-     * ### Example response ###
-     * {
-     *   "data":{"token":"__my_token__"},
-     *   "status_code":200,
-     *   "errors":null
-     * }
      * 
      * @Route(path="/get_token")
      * @Method({"POST"})
@@ -98,16 +91,7 @@ class AuthentificationController extends Controller
     }
 
     /**
-     * ### Example response ###
-     * {
-     *   "data":{"token":"__my_token__"},
-     *   "status_code":200,
-     *   "errors":null
-     * }
      *
-     * curl auth
-     * curl -X POST http://localhost:8000/api/get_token -d username=djeanlou -d password=123456789C | pbcopy
-     *  
      * @Route(path="/sign_up", name="sign_up")
      * @Method({"POST"})
      * 
@@ -151,7 +135,7 @@ class AuthentificationController extends Controller
 
         $user = new User();
         $user->setUsername($username);
-        $user->setPassword($password);
+        $user->setPlainPassword($password);
         $user->setEmail($email);
 
         $em = $this->getDoctrine()->getManager();

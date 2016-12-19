@@ -82,7 +82,6 @@ class BaseAPI extends Controller
       } catch (\Exception $e) {
         $parameters['category'] = null;
       }
-      
     }
 
     $dql .= ' ORDER BY p.createdAt DESC';
@@ -135,9 +134,6 @@ class BaseAPI extends Controller
 
   public function isUserTokenValid($token, Request $request = null)
   {
-    // if (!$request->isXmlHttpRequest()) {
-    //   # code...
-    // }
     try {
       $user = $this->get('lexik_jwt_authentication.encoder')->decode($token);
       return $user;

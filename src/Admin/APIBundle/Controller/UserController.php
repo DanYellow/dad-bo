@@ -20,8 +20,8 @@ class UserController extends BaseAPI
 {
   /**
    * 
-   * @Route("/user/{user}/classified_advertisements")
-   * @Route("/user/{user}/classified_advertisements?page={page}", defaults={"page" = 1})
+   * @Route("/user/{user}/classified_advertisements/{p}", defaults={"p": 1, "q": null, "c": null})
+   * @Route("/me/classified_advertisements/{p}", defaults={"p": 1, "q": null, "c": null})
    * @Method({"GET"})
    * 
    * @ApiDoc(
@@ -58,7 +58,6 @@ class UserController extends BaseAPI
                ->findOneBy(array('username' => $userFromToken["username"]));
     
     $response = $this->retrieveClassifiedAdvertisements($request, $user, true);
-
 
     return new JSONResponse($response, $response['status_code']);
   }

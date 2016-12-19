@@ -533,7 +533,7 @@ class ClassifiedAdvertisementController extends BaseAPI
                                       'seller' => $user,
                                       'id' => $id,
                                     ));
-    $classifiedAdvertisement->setIsActive( !$classifiedAdvertisement->getIsActive());
+    $classifiedAdvertisement->setIsActive(!$classifiedAdvertisement->getIsActive());
     $em->persist($classifiedAdvertisement);
     $em->flush();
 
