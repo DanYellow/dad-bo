@@ -46,7 +46,8 @@ class User extends BaseUser
     private $location;
 
     /**
-     * @ORM\OneToMany(targetEntity="ClassifiedAdvertisement", mappedBy="seller", cascade={"persist", "merge"})
+     * @ORM\OneToMany(targetEntity="ClassifiedAdvertisement", mappedBy="seller", cascade={"remove"})
+     * 
      */
     private $classifiedAdvertisements;
 
@@ -167,5 +168,18 @@ class User extends BaseUser
           'pseudo' => $this->getPseudo(),
           'location' => $this->getLocation(),
         );
+    }
+
+    /**
+    * @ORM\PreRemove
+    */
+    public function deleteAllClassifiedAdvertisements()
+    {
+        $classifiedAdvertisements = $this->getClassifiedAdvertisements();
+
+        foreach ($classifiedAdvertisements as $classifiedAdvertisement) {
+            $this->classifiedAdvertisements->removeElement($classifiedAdvertisement);
+            $classifiedAdvertisement->classifiedAdvertisement = null; //$lot->setTerrain(null); will be better, try to add getters and setters
+        }
     }
 }

@@ -41,13 +41,10 @@ class ClassifiedAdvertisementImage
     private $name;
 
     /**
+     *
+     * @var UploadedFile $file
      * 
-     * @Assert\Image(
-     *          mimeTypes = {"image/jpeg", "image/jpg", "image/png", "image/gif"},
-     *          mimeTypesMessage = "Ce format n'est pas autorisé. Seul les images au format .jp(e)g, .png et .gif sont autorisés",
-     *          maxSize = "4M", 
-     *          maxSizeMessage = "Ce fichier est trop lourd ({{ size }}). La taille maximum autorisée est de : {{ limit }}"
-     * )
+     * @Assert\Image(mimeTypes={ "image/jpeg", "image/jpg", "image/png", "image/gif" })
      */
     private $file;
 
@@ -216,7 +213,7 @@ class ClassifiedAdvertisementImage
     public function removeUpload()
     {
         $file = $this->getAbsolutePath();
-        if ($file) {
+        if ($file && file_exists($file) ) {
             unlink($file);
         }
     }

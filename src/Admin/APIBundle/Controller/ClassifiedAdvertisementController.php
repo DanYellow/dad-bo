@@ -36,10 +36,20 @@ class ClassifiedAdvertisementController extends BaseAPI
 
     $selectSubQuery = 'SELECT id FROM classified_advertisement WHERE id > :id';
 
-    $query = $em->createNativeQuery('SELECT id FROM classified_advertisement WHERE
-      id = (SELECT id FROM classified_advertisement WHERE id > :id LIMIT 1)
-      OR
-      id = (SELECT id FROM classified_advertisement WHERE id < :id ORDER BY id DESC LIMIT 1)', $rsm);
+    if ($user) {
+      $query = $em->createNativeQuery('SELECT id FROM classified_advertisement WHERE
+        id = (SELECT id FROM classified_advertisement WHERE id > :id AND user_id = :id_user LIMIT 1)
+        OR
+        id = (SELECT id FROM classified_advertisement WHERE id < :id AND user_id = :id_user ORDER BY id DESC LIMIT 1)', $rsm);
+
+        $query->setParameter('id_user', $user->getId());
+    } else {
+      $query = $em->createNativeQuery('SELECT id FROM classified_advertisement WHERE
+        id = (SELECT id FROM classified_advertisement WHERE id > :id LIMIT 1)
+        OR
+        id = (SELECT id FROM classified_advertisement WHERE id < :id ORDER BY id DESC LIMIT 1)', $rsm);
+    }
+    
     
     $query->setParameter('id', $id);
 
@@ -52,6 +62,20 @@ class ClassifiedAdvertisementController extends BaseAPI
     }
 
     return $siblings;
+  }
+
+  private function checkImageValidity(Request $request) {
+    if (!in_array($request->files->get('image')->getClientMimeType(), ['image/png', 'image/jpg', 'image/jpeg', 'image/gif'])) {
+          return $response = array(
+            'success' => false,
+            'data' => array(
+              'flash_message' => Helpers::createFlashMessage('Image invalid', 'error', 1013)
+            ),
+            'status_code'=> Response::HTTP_BAD_REQUEST,
+          );
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -115,6 +139,7 @@ class ClassifiedAdvertisementController extends BaseAPI
   public function getClassifiedAdvertisement(Request $request)
   {
     $id = (int)$this->getRequest()->get('id');
+    $isAadminPart = $this->getRequest()->get('is_admin_part');
 
     $em = $this->getDoctrine()->getManager();
     $classifiedAdvertisement = $em->getRepository('AdminAPIBundle:ClassifiedAdvertisement')
@@ -150,6 +175,9 @@ class ClassifiedAdvertisementController extends BaseAPI
       //   (SELECT ca2.id FROM AdminAPIBundle:ClassifiedAdvertisement ca2 WHERE ca2.id < ca.id ORDER BY ca2.id ) as prev FROM AdminAPIBundle:ClassifiedAdvertisement ca WHERE ca.id = 6';
       // $siblings = $em->createQuery($query)->getResult();
 
+      if (!(boolean)$isAadminPart) {
+        $currentUser = null;
+      }
 
       $response = array(
         'success' => true,
@@ -158,7 +186,7 @@ class ClassifiedAdvertisementController extends BaseAPI
           'resource' => $classifiedAdvertisementObject,
         ),
         'errors' => null,
-        'siblings' => $this->getClassifiedAdvertisementSiblings($id)
+        'siblings' => $this->getClassifiedAdvertisementSiblings($id, $currentUser)
       );
     }
 
@@ -218,7 +246,7 @@ class ClassifiedAdvertisementController extends BaseAPI
 
     if ($form->isValid()) {
       $classifiedAdvertisement = $em->getRepository('AdminAPIBundle:ClassifiedAdvertisement')
-                                  ->findOneBy(array(
+                                    ->findOneBy(array(
                                       'seller' => $seller,
                                       'id' => $id,
                                     ));
@@ -235,6 +263,7 @@ class ClassifiedAdvertisementController extends BaseAPI
       $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('id' => $category));
 
       if ($request->request->get('has_updated_image') === 'true') {
+        
         // User removes CA's image
         if (is_null($request->files->get('image')) && $classifiedAdvertisement->getImage()) {
           $image = $classifiedAdvertisement->getImage();
@@ -243,6 +272,11 @@ class ClassifiedAdvertisementController extends BaseAPI
           $em->flush();
         // User replaces CA's image
         } else if (!is_null($request->files->get('image'))) {
+          if (!is_null($this->checkImageValidity($request))) {
+            $return = $this->checkImageValidity($request);
+            return new JSONResponse($return, $return['status_code']);
+          }
+
           $image = $classifiedAdvertisement->getImage();
           if (is_null($image)) {
             $image = new ClassifiedAdvertisementImage();
@@ -282,8 +316,6 @@ class ClassifiedAdvertisementController extends BaseAPI
         ),
         'status_code' => Response::HTTP_NOT_FOUND,
         'errors' => $form->getErrors(true, false),
-       
-        // 'errors' => $form->getErrorsAsString()
       );
     }
 
@@ -453,6 +485,11 @@ class ClassifiedAdvertisementController extends BaseAPI
         $classifiedAdvertisement->setPrice($price);
 
         if (!is_null($request->files->get('image'))) {
+          if (!is_null($this->checkImageValidity($request))) {
+            $return = $this->checkImageValidity($request);
+            return new JSONResponse($return, $return['status_code']);
+          }
+          
           $classifiedAdvertisementImage = new ClassifiedAdvertisementImage();
           $classifiedAdvertisementImage->setFile($request->files->get('image'), array(), true);
           $classifiedAdvertisementImage->upload();

@@ -91,8 +91,8 @@ class ClassifiedAdvertisement
     private $category;
 
     /**
-     * @ORM\ManyToOne(targetEntity="User", inversedBy="classifiedAdvertisements")
-     * @ORM\JoinColumn(name="user_id", referencedColumnName="id", nullable=false)
+     * @ORM\ManyToOne(targetEntity="User", inversedBy="classifiedAdvertisements", cascade={"remove"})
+     * @ORM\JoinColumn(name="user_id", referencedColumnName="id", onDelete="cascade")
      */
     private $seller;
 
