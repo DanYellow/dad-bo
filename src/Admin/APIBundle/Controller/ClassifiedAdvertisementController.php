@@ -305,7 +305,7 @@ class ClassifiedAdvertisementController extends BaseAPI
           'resource' => $classifiedAdvertisementObject,
           'flash_message' => Helpers::createFlashMessage('resource updated', 'success', 1001)
         ),
-        'status_code'=> Response::HTTP_CREATED,
+        'status_code'=> Response::HTTP_OK,
         'siblings' => $this->getClassifiedAdvertisementSiblings($id)
       );
     } else {
@@ -532,8 +532,7 @@ class ClassifiedAdvertisementController extends BaseAPI
   }
 
   /**
-   * 
-   * @Route("/classified_advertisement/activate/{id}", requirements={"_method" = "POST", "id" = "\+d" })
+   * @Route("/classified_advertisement/activate/{id}")
    * @Method({"POST"})
    *
    * @ApiDoc(
@@ -576,6 +575,14 @@ class ClassifiedAdvertisementController extends BaseAPI
     $classifiedAdvertisement->setIsActive(!$classifiedAdvertisement->getIsActive());
     $em->persist($classifiedAdvertisement);
     $em->flush();
+
+    $response = array(
+            'success' => true,
+            'data' => array(
+              'flash_message' => Helpers::createFlashMessage('Status updated', 'error', 1013)
+            ),
+            'status_code'=> Response::HTTP_OK,
+          );
 
     return new JSONResponse($response, $response['status_code']);
   }

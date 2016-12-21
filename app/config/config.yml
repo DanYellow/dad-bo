@@ -14,6 +14,17 @@ fos_user:
     firewall_name: main
     user_class: Admin\APIBundle\Entity\User
 
+    service:
+        mailer: fos_user.mailer.default
+
+    from_email:
+        address:        jeanlouis.danielo@gmail.com
+        sender_name:    Demo App
+
+    resetting:
+        email:
+            template:   FOSUserBundle:Registration:email.txt.twig
+
 nelmio_api_doc:
     name: D-A-D REST API Documentation
 

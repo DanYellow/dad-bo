@@ -124,7 +124,6 @@ class User extends BaseUser
      */
     public function preUpload()
     {
-        $this->email = sha1($this->email);
         $this->pseudo = $this->username;
     }
 

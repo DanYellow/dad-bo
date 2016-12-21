@@ -168,4 +168,57 @@ class AuthentificationController extends Controller
 
       return new JSONResponse($response, $response['status_code']);
     }
+
+    /**
+     *
+     * @Route(path="/forgot_password", name="forgot_password")
+     * @Method({"POST"})
+     */
+    public function forgotPassword(Request $request)
+    {
+      $data = json_decode($request->getContent(), true);
+      $response = array();
+
+      $email = $data['email'];
+      $user = $this->get('fos_user.user_manager')->findUserByEmail($email);
+
+      if (is_null($user)) {
+        $user = $this->get('fos_user.user_manager')->findUserByUsername($email);
+      }
+
+      if (is_null($user)) {
+        echo "greger";
+        $response = array(
+          'success' => false,
+          'data' => array(
+            'flash_message' => Helpers::createFlashMessage('Unknown user', 'error', 1006)
+          ),
+          'status_code'=> Response::HTTP_NOT_FOUND,
+          'errors' => [
+            array('name' => null)
+          ]
+        );
+        return new JSONResponse($response, $response['status_code']);
+      }
+
+      if (null === $user->getConfirmationToken()) {
+        $tokenGenerator = $this->get('fos_user.util.token_generator');
+        $user->setConfirmationToken($tokenGenerator->generateToken());
+      }
+
+      $this->get('fos_user.mailer')->sendResettingEmailMessage($user);
+      $user->setPasswordRequestedAt(new \DateTime());
+      $this->get('fos_user.user_manager')->updateUser($user);
+
+      $response = array(
+        'success' => true,
+        'data' => array(
+          'flash_message' => Helpers::createFlashMessage('mail sent', 'success', 1014)
+        ),
+        'status_code'=> Response::HTTP_OK
+      );
+
+      return new JSONResponse($response, $response['status_code']);
+
+    }
 }
