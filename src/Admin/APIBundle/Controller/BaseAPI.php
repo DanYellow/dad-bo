@@ -57,7 +57,15 @@ class BaseAPI extends Controller
       $currentPage = 1;
     }
 
-    $dql = 'SELECT p FROM AdminAPIBundle:ClassifiedAdvertisement p WHERE p.isActive=1';
+    $dql = 'SELECT p FROM AdminAPIBundle:ClassifiedAdvertisement p';
+
+    // User is in his admin part so he can see all of his ca even non active
+    $accessFromBack = $this->getRequest()->get('mine', null);
+    if ($accessFromBack) {
+      $dql .= ' WHERE p.isActive IN (0, 1)';
+    } else {
+      $dql .= ' WHERE p.isActive=1';
+    }
 
     if ($dataForASeller) {
       $dql .= ' AND p.seller=:seller';

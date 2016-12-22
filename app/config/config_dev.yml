@@ -39,5 +39,5 @@ swiftmailer:
     spool:     { type: memory }
     auth_mode:  login
     host:       smtp.gmail.com
-    username:   jeanlouis.danielo@gmail.com
-    password:   hypochondriaques!
+    username:   world
+    password:   hello
