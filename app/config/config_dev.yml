@@ -32,12 +32,3 @@ monolog:
 
 #swiftmailer:
 #    delivery_address: me@example.com
-
-swiftmailer:
-    transport: "%mailer_transport%"
-    host:      "%mailer_host%"
-    spool:     { type: memory }
-    auth_mode:  login
-    host:       smtp.gmail.com
-    username:   world
-    password:   hello

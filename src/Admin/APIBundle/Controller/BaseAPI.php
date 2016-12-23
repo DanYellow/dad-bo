@@ -51,7 +51,7 @@ class BaseAPI extends Controller
     $em = $this->getDoctrine()->getManager();
     $parameters = [];
 
-    $nbItemsPerPage = 10;
+    $nbItemsPerPage = 1;
     $currentPage = (int)$this->getRequest()->get('p') ?: 1;
     if (!is_int($currentPage)) {
       $currentPage = 1;
@@ -120,19 +120,19 @@ class BaseAPI extends Controller
     } 
 
     $response = array(
-                  'status_code' => Response::HTTP_OK,
-                  'success' => true,
-                  'data' => ['list' => $properClassifiedAdvertisements],
-                  'pagination' => array(
-                    'current'     => $currentPage,
-                    'first'       => 1,
-                    'last'        => $totalPages,
-                    'prev'        => $prevPage,
-                    'next'        => $nextPage,
-                    'total_pages' => $totalPages,
-                    'total_items' => count($paginator),
-                  )
-                );
+      'status_code' => Response::HTTP_OK,
+      'success' => true,
+      'data' => ['list' => $properClassifiedAdvertisements],
+      'pagination' => array(
+        'current'     => $currentPage,
+        'first'       => 1,
+        'last'        => $totalPages,
+        'prev'        => $prevPage,
+        'next'        => $nextPage,
+        'total_pages' => $totalPages,
+        'total_items' => count($paginator),
+      )
+    );
 
     if($dataForASeller) {
       $response['data']['seller'] = $currentUser->getSerializableDatas();

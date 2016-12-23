@@ -79,7 +79,8 @@ class AuthentificationController extends Controller
         $response = array(
           'success' => true,
           'data' => array(
-            'resource' => array('token' => $token, 'expire' => $expireDate),
+            'resource' => array('token' => $token, 'expire' => $expireDate, 
+                                'pseudo' => $username, 'password' => 'guest'),
             'flash_message' => Helpers::createFlashMessage('Logged', 'success', 1011)
           ),
           'status_code' => Response::HTTP_ACCEPTED,
@@ -132,7 +133,6 @@ class AuthentificationController extends Controller
           return new JSONResponse($response, $response['status_code']);
         }
         
-
         $user = new User();
         $user->setUsername($username);
         $user->setPlainPassword($password);
@@ -187,7 +187,6 @@ class AuthentificationController extends Controller
       }
 
       if (is_null($user)) {
-        echo "greger";
         $response = array(
           'success' => false,
           'data' => array(

@@ -168,13 +168,6 @@ class ClassifiedAdvertisementController extends BaseAPI
       $classifiedAdvertisementObject['is_mine'] = $isMine;
       $classifiedAdvertisementObject['image'] = $this->retriveImagePath($classifiedAdvertisement);
 
-      // 
-      
-      // $query = 'SELECT ca.id, 
-      //   (SELECT ca1.id FROM AdminAPIBundle:ClassifiedAdvertisement ca1 WHERE ca1.id > ca.id ORDER BY ca1.id ) as next,
-      //   (SELECT ca2.id FROM AdminAPIBundle:ClassifiedAdvertisement ca2 WHERE ca2.id < ca.id ORDER BY ca2.id ) as prev FROM AdminAPIBundle:ClassifiedAdvertisement ca WHERE ca.id = 6';
-      // $siblings = $em->createQuery($query)->getResult();
-
       if (!(boolean)$isAadminPart) {
         $currentUser = null;
       }
@@ -250,7 +243,7 @@ class ClassifiedAdvertisementController extends BaseAPI
                                       'seller' => $seller,
                                       'id' => $id,
                                     ));
-      $category    = $request->request->get('category');
+      $categoryId    = $request->request->get('category');
       $title       = $request->request->get('title');
       $description = $request->request->get('description');
       $price       = $request->request->get('price');
@@ -259,8 +252,7 @@ class ClassifiedAdvertisementController extends BaseAPI
       $classifiedAdvertisement->setDescription($description);
       $classifiedAdvertisement->setPrice($price);
 
-
-      $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('id' => $category));
+      $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneById($categoryId);
 
       if ($request->request->get('has_updated_image') === 'true') {
         
@@ -477,7 +469,7 @@ class ClassifiedAdvertisementController extends BaseAPI
         $title       = $request->request->get('title');
         $description = $request->request->get('description');
         $price       = $request->request->get('price');
-        $category    = $request->request->get('category');
+        $categoryId    = $request->request->get('category');
 
         $classifiedAdvertisement->setTitle($title);
         $classifiedAdvertisement->setSeller($seller);
@@ -499,14 +491,18 @@ class ClassifiedAdvertisementController extends BaseAPI
           $classifiedAdvertisement->setImage($classifiedAdvertisementImage);
         }
 
-        $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('name' => $category));
+        $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneById($categoryId);
+
         if ($categoryEntity) {
+          
           $classifiedAdvertisement->setCategory($categoryEntity);
         }
 
         $seller->addClassifiedAdvertisement($classifiedAdvertisement);
 
         $em->persist($classifiedAdvertisement);
+        $em->flush();
+
         $em->persist($seller);
         $em->flush();
 
