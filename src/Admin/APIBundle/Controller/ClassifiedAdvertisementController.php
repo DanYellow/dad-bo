@@ -575,7 +575,7 @@ class ClassifiedAdvertisementController extends BaseAPI
     $response = array(
             'success' => true,
             'data' => array(
-              'flash_message' => Helpers::createFlashMessage('Status updated', 'error', 1013)
+              'flash_message' => Helpers::createFlashMessage('Status updated', 'success', 1001)
             ),
             'status_code'=> Response::HTTP_OK,
           );

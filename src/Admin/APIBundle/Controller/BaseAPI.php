@@ -51,7 +51,7 @@ class BaseAPI extends Controller
     $em = $this->getDoctrine()->getManager();
     $parameters = [];
 
-    $nbItemsPerPage = 1;
+    $nbItemsPerPage = 10;
     $currentPage = (int)$this->getRequest()->get('p') ?: 1;
     if (!is_int($currentPage)) {
       $currentPage = 1;

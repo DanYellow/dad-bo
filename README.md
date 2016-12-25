@@ -46,3 +46,6 @@ https://knpuniversity.com/screencast/symfony-rest4/create-json-web-token
 
 
  SELECT image_id, title, id FROM classified_advertisement;
+
+
+ php app/console assets:install ../web

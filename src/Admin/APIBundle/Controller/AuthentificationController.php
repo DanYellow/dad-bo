@@ -74,7 +74,7 @@ class AuthentificationController extends Controller
       } else {
         $token = $this->get('lexik_jwt_authentication.encoder')
                       ->encode(['username' => $user->getUsername()]);
-        $expireDate = time() + (60 * 60);
+        $expireDate = time() + (60 * 60 * 2);
         
         $response = array(
           'success' => true,
@@ -218,6 +218,42 @@ class AuthentificationController extends Controller
       );
 
       return new JSONResponse($response, $response['status_code']);
+    }
 
+    /**
+     *
+     * @Route(path="/", name="api_version")
+     * @Method({"GET", "POST"})
+     */
+    function apiVersion() {
+      $response = [
+        'success' => true,
+        'data' => array(
+          'resource' => 'DAD API version 1.0'
+        ),
+        'status_code'=> Response::HTTP_OK
+      ];
+
+      return new JSONResponse($response, Response::HTTP_OK);
+    }
+
+    /**
+     *
+     * @Route(path="/send_mail", name="send_mail")
+     * @Method({"GET"})
+     */
+    function toastMail() {
+      $message = \Swift_Message::newInstance();
+      $message->setSubject("Test Sujet");
+      //$message->setFrom('contact@monsiteovh.fr');
+      // $message->setTo('jeanlouis.danielo@sfr.fr');
+      $message->setTo('inscription42@hotmail.fr');
+      $message->setBody('Coucou');
+      $this->get('mailer')->send($message);
+
+
+        return new Response(
+            '<html><body>Lucky number: 5000 </body></html>'
+        );
     }
 }

@@ -27,9 +27,9 @@ class AppKernel extends Kernel
             new Lexik\Bundle\JWTAuthenticationBundle\LexikJWTAuthenticationBundle(),
             new Cocur\Slugify\Bridge\Symfony\CocurSlugifyBundle(),
             new Nelmio\CorsBundle\NelmioCorsBundle(),
+            new Liip\ImagineBundle\LiipImagineBundle(),
             
             new Admin\APIBundle\AdminAPIBundle(),
-            new Liip\ImagineBundle\LiipImagineBundle(),
         );
 
         if (in_array($this->getEnvironment(), array('dev', 'test'), true)) {
