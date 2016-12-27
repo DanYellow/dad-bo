@@ -83,13 +83,7 @@ class BaseAPI extends Controller
     if ($category) {
       $dql .= ' AND p.category = :category';
 
-      try {
-        $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneBy(array('name' => $category));
-        
-        $parameters['category'] = $categoryEntity;
-      } catch (\Exception $e) {
-        $parameters['category'] = null;
-      }
+      $parameters['category'] = $category;
     }
 
     $dql .= ' ORDER BY p.createdAt DESC';
@@ -134,7 +128,7 @@ class BaseAPI extends Controller
       )
     );
 
-    if($dataForASeller) {
+    if($dataForASeller && $currentUser) {
       $response['data']['seller'] = $currentUser->getSerializableDatas();
     }
     return $response;
@@ -146,7 +140,7 @@ class BaseAPI extends Controller
       $user = $this->get('lexik_jwt_authentication.encoder')->decode($token);
       return $user;
     } catch (\Exception $e) {
-      return false;
+      return null;
     }
   }
 }

@@ -139,14 +139,15 @@ class Category
      */
     public function getClassifiedAdvertisements($areActive = false)
     {
-        if (!$areActive) {
+        if ($areActive === 0) {
             return $this->classifiedAdvertisements;
         } else {
-            $func = function($classifiedAdvertisement) {
-                return $classifiedAdvertisement->getIsActive();
-            };
+            $filteredCAs = array_filter($this->classifiedAdvertisements->toArray(), 
+                                function ($classifiedAdvertisement) {
+                                    return $classifiedAdvertisement->getIsActive();
+            });
 
-            return array_map($func, $this->getClassifiedAdvertisements()->toArray());
+            return $filteredCAs;
         }
     }
 
