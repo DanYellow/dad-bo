@@ -31,10 +31,10 @@
       $ACCESS_TOKEN = $this->getParameter('twitter_access_token');
       $ACCESS_TOKEN_SECRET = $this->getParameter('twitter_access_token_secret');
 
-      $params = ['screen_name' => 'digitwitas', 'count' => 5];
+      $params = ['screen_name' => 'digitwitas', 'count' => 17];
 
       $connection = new TwitterOAuth($CONSUMER_KEY, $CONSUMER_SECRET, $ACCESS_TOKEN, $ACCESS_TOKEN_SECRET);
-      // $content = $connection->get("search/tweets", ["q" => "twitterapi"]);
+
       $content = $connection->get("statuses/user_timeline", $params);
 
       return new JSONResponse($content);

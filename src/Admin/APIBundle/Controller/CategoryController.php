@@ -106,6 +106,90 @@ class CategoryController extends BaseAPI
 
   /**
    * 
+   * @Route("/category/{id}")
+   * @Method({"POST"})
+   * 
+   * @ApiDoc(
+   *   description="Update an existing category only accessible for ROLE ≥ ADMIN",
+   *   ressource=false,
+   *   section="Category",
+   *   headers={
+   *     {
+   *       "name"="X-TOKEN",
+   *       "description"="User token",
+   *       "required"=true
+   *     }
+   *   },
+   *   requirements={
+   *     {"name"="name", "dataType"="integer", "description"="Category new name"},
+   *   }
+   * )
+   */
+  public function updateCategory(Request $request)
+  {
+    $token = $request->headers->get('X-TOKEN');
+
+    $userFromToken = $this->isUserTokenValid($token);
+    
+    if (!$userFromToken) {
+     return new JSONResponse(
+                  Helpers::manageInvalidUserToken()['container'],
+                  Helpers::manageInvalidUserToken()['error_code']
+                );
+    }
+
+
+    $em = $this->getDoctrine()->getManager();
+    $user = $em->getRepository('AdminAPIBundle:User')
+               ->findOneBy(array('username' => $userFromToken["username"]));
+
+    if (!in_array('ROLE_ADMIN', $user->getRoles())){
+      return new JSONResponse(array(
+        'data' => null,
+        'status_code' => Response::HTTP_UNAUTHORIZED,
+        'success' => false,
+        'errors' => array(
+          'name' => ''
+        )
+      ), Response::HTTP_UNAUTHORIZED);
+    }
+
+    $id = (int)$this->getRequest()->get('id');
+    $catName = $this->getRequest()->get('name');
+
+    try {
+      $categoryEntity = $em->getRepository('AdminAPIBundle:Category')->findOneById($id);
+
+      $categoryEntity->setName($catName);
+      $categoryEntity->setSlugName($this->get('cocur_slugify')->slugify($catName));
+
+      $em->persist($categoryEntity);
+      $em->flush();
+
+      $response = array(
+        'data' => array(
+          'ressource' => $category->getSerializableDatas(),
+          'flash_message' => Helpers::createFlashMessage('Ressource created', 'success', 1001)
+        ),
+        'status_code'=> Response::HTTP_OK,
+        'success' => true,
+      );
+    } catch (\Exception $e) {
+      $response = array(
+        'success' => false,
+        'data' => array(
+          'flash_message' => Helpers::createFlashMessage('resource not found', 'error', 1004)
+        ),
+        'status_code' => Response::HTTP_NOT_FOUND,
+        'errors' => null,
+      );
+    }
+
+    return new JSONResponse($response, $response['status_code']);
+  }
+
+  /**
+   * 
    * @Route("/categories")
    * @Method({"GET"})
    * 

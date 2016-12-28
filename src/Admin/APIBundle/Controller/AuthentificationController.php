@@ -42,6 +42,11 @@ class AuthentificationController extends Controller
       $username = $data['username'];
       $password = $data['password'];
 
+      // if ($request->request) {
+      //   $username = $request->request->get('username');
+      //   $password = $request->request->get('password');
+      // }
+
       $user = $this->getDoctrine()
                    ->getRepository('AdminAPIBundle:User')
                    ->findOneBy(['username' => $username]);

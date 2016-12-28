@@ -36,6 +36,7 @@ class ClassifiedAdvertisementController extends BaseAPI
 
     $selectSubQuery = 'SELECT id FROM classified_advertisement WHERE id > :id';
 
+    // Retrieve the good siblings
     if ($user) {
       $query = $em->createNativeQuery('SELECT id FROM classified_advertisement WHERE
         id = (SELECT id FROM classified_advertisement WHERE id > :id AND user_id = :id_user LIMIT 1)
@@ -113,6 +114,7 @@ class ClassifiedAdvertisementController extends BaseAPI
     }
 
     $response = $this->retrieveClassifiedAdvertisements($request, $currentUser);
+    
     return new JSONResponse($response);
   }
 
@@ -164,9 +166,10 @@ class ClassifiedAdvertisementController extends BaseAPI
       }
 
       $isMine = ($classifiedAdvertisement->getSeller() === $currentUser) ? true : false;
-      $classifiedAdvertisementObject = $classifiedAdvertisement->getSerializableDatas();
+      
+      $classifiedAdvertisementObject            = $classifiedAdvertisement->getSerializableDatas();
       $classifiedAdvertisementObject['is_mine'] = $isMine;
-      $classifiedAdvertisementObject['image'] = $this->retriveImagePath($classifiedAdvertisement);
+      $classifiedAdvertisementObject['image']   = $this->retriveImagePath($classifiedAdvertisement);
 
       if (!(boolean)$isAadminPart) {
         $currentUser = null;

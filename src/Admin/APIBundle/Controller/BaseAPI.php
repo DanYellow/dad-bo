@@ -86,6 +86,14 @@ class BaseAPI extends Controller
       $parameters['category'] = $category;
     }
 
+    $status = $this->getRequest()->get('s', null);
+    if ($status) {
+      $status = (int)$status - 1;
+      $dql .= ' AND p.isActive = :status';
+
+      $parameters['status'] = $status;
+    }
+
     $dql .= ' ORDER BY p.createdAt DESC';
     
     $query = $em->createQuery($dql)
