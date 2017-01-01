@@ -35,7 +35,7 @@
 
       $connection = new TwitterOAuth($CONSUMER_KEY, $CONSUMER_SECRET, $ACCESS_TOKEN, $ACCESS_TOKEN_SECRET);
 
-      $content = $connection->get("statuses/user_timeline", $params);
+      $content = $connection->get('statuses/user_timeline', $params);
 
       return new JSONResponse($content);
     }
