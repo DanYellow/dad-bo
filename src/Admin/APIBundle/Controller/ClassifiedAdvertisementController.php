@@ -28,7 +28,6 @@ use Doctrine\ORM\Query\ResultSetMapping;
 
 class ClassifiedAdvertisementController extends BaseAPI
 {
-
   private function getClassifiedAdvertisementSiblings($id, $user = null) {
     $em = $this->getDoctrine()->getManager();
     $rsm = new ResultSetMapping();
@@ -80,8 +79,8 @@ class ClassifiedAdvertisementController extends BaseAPI
   }
 
   /**
-   * 
-   * @Route("/classified_advertisements/{p}", defaults={"p": 1, "q": null, "c": null})
+   * @Route("/c_as/{p}", defaults={"p": 1, "q": null, "c": null})
+   * @Route("me/c_as/{p}", defaults={"p": 1, "q": null, "c": null})
    * @Method({"GET"})
    * 
    * @ApiDoc(
@@ -119,7 +118,7 @@ class ClassifiedAdvertisementController extends BaseAPI
   }
 
   /**
-   * @Route("/classified_advertisement/{id}")
+   * @Route("/c_a/{id}")
    * @Method({"GET"})
    *
    * @ApiDoc(
@@ -190,7 +189,7 @@ class ClassifiedAdvertisementController extends BaseAPI
   }
 
   /**
-   * @Route("/classified_advertisement/{id}")
+   * @Route("/c_a/{id}")
    * @Method({"POST"})
    *
    * @ApiDoc(
@@ -318,7 +317,7 @@ class ClassifiedAdvertisementController extends BaseAPI
   }
 
   /**
-   * @Route("/classified_advertisement/{id}")
+   * @Route("/c_a/{id}")
    * @Method({"DELETE"})
    *
    * @ApiDoc(
@@ -403,7 +402,7 @@ class ClassifiedAdvertisementController extends BaseAPI
 
   /**
    * 
-   * @Route("/classified_advertisement", requirements={"_method" = "POST"})
+   * @Route("/c_a", requirements={"_method" = "POST"})
    * @Method({"POST"})
    *
    * @ApiDoc(
@@ -531,7 +530,7 @@ class ClassifiedAdvertisementController extends BaseAPI
   }
 
   /**
-   * @Route("/classified_advertisement/activate/{id}")
+   * @Route("/c_a/activate/{id}")
    * @Method({"POST"})
    *
    * @ApiDoc(

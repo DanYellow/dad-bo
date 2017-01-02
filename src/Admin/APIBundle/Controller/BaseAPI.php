@@ -67,7 +67,7 @@ class BaseAPI extends Controller
       $dql .= ' WHERE p.isActive=1';
     }
 
-    if ($dataForASeller) {
+    if ($accessFromBack) {
       $dql .= ' AND p.seller=:seller';
 
       $parameters['seller'] = $currentUser;
