@@ -252,7 +252,7 @@ class AuthentificationController extends Controller
       $message->setSubject("Test Sujet");
       //$message->setFrom('contact@monsiteovh.fr');
       // $message->setTo('jeanlouis.danielo@sfr.fr');
-      $message->setTo('inscription42@hotmail.fr');
+      $message->setTo('inscription42@live.fr');
       $message->setBody('Coucou');
       $this->get('mailer')->send($message);
 
