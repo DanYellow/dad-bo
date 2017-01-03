@@ -20,8 +20,8 @@ class UserController extends BaseAPI
 {
   /**
    * 
-   * @Route("/user/{user}/classified_advertisements/{p}", defaults={"p": 1, "q": null, "c": null})
-   * @Route("/me/classified_advertisements/{p}", defaults={"p": 1, "q": null, "c": null})
+   * @Route("/user/{user}/c_as/{p}", defaults={"p": 1, "q": null, "c": null})
+   * @Route("/me/c_as/{p}", defaults={"p": 1, "q": null, "c": null})
    * @Method({"GET"})
    * 
    * @ApiDoc(

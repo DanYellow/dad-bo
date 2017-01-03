@@ -80,7 +80,6 @@ class ClassifiedAdvertisementController extends BaseAPI
 
   /**
    * @Route("/c_as/{p}", defaults={"p": 1, "q": null, "c": null})
-   * @Route("me/c_as/{p}", defaults={"p": 1, "q": null, "c": null})
    * @Method({"GET"})
    * 
    * @ApiDoc(
@@ -382,7 +381,7 @@ class ClassifiedAdvertisementController extends BaseAPI
         'data' => array(
           'flash_message' => Helpers::createFlashMessage('Element removed', 'success', 1002)
         ),
-        'status_code'=> Response::HTTP_CREATED,
+        'status_code'=> Response::HTTP_ACCEPTED,
         'errors' => null
       );
     } catch (Exception $e) {

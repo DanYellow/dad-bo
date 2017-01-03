@@ -162,9 +162,9 @@ class AuthentificationController extends Controller
         $response = array(
           'success' => false,
           'data' => array(
-            'flash_message' => Helpers::createFlashMessage($e->getMessage(), 'error', 1004)
+            'flash_message' => Helpers::createFlashMessage($e->getMessage(), 'error', 1015)
           ),
-          'status_code'=> Response::HTTP_NOT_FOUND,
+          'status_code'=> Response::HTTP_BAD_REQUEST,
           'errors' => [
             array('name' => $e->getMessage())
           ]
